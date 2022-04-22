@@ -24,7 +24,15 @@ class MachetePlugin : Plugin<Project> {
 
         val optimizeTask = project.tasks.register("optimizeOutputJars", OptimizeJarsTask::class.java) { task ->
             var jarsToOptimize = mutableSetOf<File>()
-            knownGoodTasks.forEach {
+            val tasksToCheck = knownGoodTasks.toMutableSet()
+            extension.additionalTasks.orNull?.let {
+                tasksToCheck.addAll(it)
+            }
+            extension.ignoredTasks.orNull?.let {
+                tasksToCheck.removeAll(it)
+            }
+
+            tasksToCheck.forEach {
                 val found = project.tasks.findByName(it)
                 if (found != null) {
                     jarsToOptimize.addAll(found.outputs.files)
@@ -35,7 +43,9 @@ class MachetePlugin : Plugin<Project> {
                 jarsToOptimize.addAll(additional.map { File("${project.buildDir.absolutePath}/libs/$it") })
             }
             extension.ignoredJars.orNull?.let { ignored ->
-                jarsToOptimize = jarsToOptimize.subtract(ignored.map { File("${project.buildDir.absolutePath}/libs/$it") }.toSet()).toMutableSet()
+                jarsToOptimize = jarsToOptimize.subtract(
+                    ignored.mapTo(mutableSetOf()) { File("${project.buildDir.absolutePath}/libs/$it") }
+                ).toMutableSet()
             }
 
             task.inputs.files(jarsToOptimize)

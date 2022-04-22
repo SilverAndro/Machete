@@ -8,29 +8,25 @@ import net.lingala.zip4j.model.ZipParameters
 import net.lingala.zip4j.model.enums.CompressionLevel
 import net.lingala.zip4j.model.enums.CompressionMethod
 import java.io.File
-import java.util.jar.JarEntry
-import java.util.jar.JarOutputStream
 import java.util.zip.ZipInputStream
 
-class JarOptimizer(val outputDir: File, val file: File, val isChild: Boolean = false) {
+class JarOptimizer(val workDir: File, val file: File, val isChild: Boolean = false) {
     private val children = mutableMapOf<String, File>()
 
     fun unpack() {
-        file.inputStream().use {
-            ZipInputStream(it).use {
-                it.unzip(outputDir)
-            }
+        ZipFile(file).use {
+            it.extractAll(workDir.path)
         }
     }
 
     private fun optimizePNG() {
-        outputDir.allWithExtension("png") {
+        workDir.allWithExtension("png") {
             OxipngManager.optimize(it)
         }
     }
 
     private fun optimizeJSON() {
-        outputDir.allWithExtension("json") { file ->
+        workDir.allWithExtension("json") { file ->
             val text = file.bufferedReader().use {
                 it.readText()
             }
@@ -40,7 +36,7 @@ class JarOptimizer(val outputDir: File, val file: File, val isChild: Boolean = f
                     val final = GsonBuilder().disableHtmlEscaping().serializeNulls().create().toJson(jsonObj)
                     it.write(final)
                 } catch (err: Throwable) {
-                    println("Failed to optimize ${file.relativeTo(outputDir).path}")
+                    println("Failed to optimize ${file.relativeTo(workDir).path}")
                     err.printStackTrace()
                 }
             }
@@ -48,16 +44,15 @@ class JarOptimizer(val outputDir: File, val file: File, val isChild: Boolean = f
     }
 
     private fun optimizeChildren() {
-        outputDir.allWithExtension("jar") { file ->
-            val unpack = JarOptimizer(outputDir.resolveAndMakeSiblingDir(file.nameWithoutExtension), file, true)
+        workDir.allWithExtension("jar") { file ->
+            val unpack = JarOptimizer(workDir.resolveAndMakeSiblingDir(file.nameWithoutExtension), file, true)
             unpack.unpack()
             unpack.optimize()
 
-            outputDir.resolveSibling("tmpJars").mkdirs()
-            val outJar = outputDir.resolveSibling("tmpJars").resolveAndMake(file.name)
+            val outJar = workDir.resolveAndMakeSiblingDir("tmpJars").resolveAndMake(file.name)
 
             unpack.repackTo(outJar)
-            children[file.relativeTo(outputDir).path] = outJar
+            children[file.relativeTo(workDir).path] = outJar
         }
     }
 
@@ -106,8 +101,8 @@ class JarOptimizer(val outputDir: File, val file: File, val isChild: Boolean = f
             }
 
             // jars are handled by the children array, so that we can place them better
-            outputDir.walkBottomUp().toList().filter { it.isFile && it.extension != "jar" }.forEach { optimizedFile ->
-                zip.addFile(optimizedFile, makeParams(optimizedFile.relativeTo(outputDir).path))
+            workDir.walkBottomUp().toList().filter { it.isFile && it.extension != "jar" }.forEach { optimizedFile ->
+                zip.addFile(optimizedFile, makeParams(optimizedFile.relativeTo(workDir).path))
             }
 
             children.forEach { (path, childJar) ->
