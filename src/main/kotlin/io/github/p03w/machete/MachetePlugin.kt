@@ -49,7 +49,7 @@ class MachetePlugin : Plugin<Project> {
             }
 
             task.inputs.files(jarsToOptimize)
-            if (extension.keepOriginal.get()) {
+            if (extension.keepOriginal.get().not()) {
                 task.outputs.files(jarsToOptimize)
             } else {
                 task.outputs.files(jarsToOptimize.map {
