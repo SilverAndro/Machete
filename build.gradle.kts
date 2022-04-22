@@ -2,15 +2,15 @@ import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    kotlin("jvm") version "1.6.20"
-    id("com.github.johnrengelman.shadow") version "7.1.2"
     java
-    `maven-publish`
-    `java-gradle-plugin`
+    kotlin("jvm") version "1.6.20"
+    id("com.gradle.plugin-publish") version "1.0.0-rc-1"
+    id("com.github.johnrengelman.shadow") version "7.1.2"
 }
 
 group = "io.github.p03w"
 version = "1.0.0"
+description = "A gradle plugin to optimize built jars through individual file optimizations and increased compression"
 
 repositories {
     mavenCentral()
@@ -32,6 +32,9 @@ tasks.withType<ShadowJar> {
         project.configurations.getByName("shadow")
     )
 
+    relocate("com.google", "shadow.google")
+    relocate("net.lingala", "shadow.lingala")
+
     minimize()
 }
 
@@ -50,24 +53,19 @@ tasks.withType<ShadowJar> {
     archiveVersion.set(project.version.toString())
 }
 
-publishing {
-    publications {
-        create<MavenPublication>("maven") {
-            groupId = "io.github.p03w.machete"
-            artifactId = "machete"
-            version = "1.0.0"
-
-            from(project.components.getByName("java"))
-            //artifact(tasks.shadowJar)
+gradlePlugin {
+    plugins {
+        create("machetePlugin") {
+            id = "io.github.p03w.machete"
+            displayName = "Machete"
+            implementationClass = "io.github.p03w.machete.MachetePlugin"
         }
     }
 }
 
-gradlePlugin {
-    plugins {
-        create("mixlinPlugin") {
-            id = "io.github.p03w.machete"
-            implementationClass = "io.github.p03w.machete.MachetePlugin"
-        }
-    }
+pluginBundle {
+    website = "https://github.com/P03W/Machete/"
+    vcsUrl = "https://github.com/P03W/Machete/"
+    description = project.description
+    tags = listOf("jar", "build", "jvm", "compress")
 }
