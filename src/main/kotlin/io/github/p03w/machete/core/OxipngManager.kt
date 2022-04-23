@@ -39,7 +39,11 @@ object OxipngManager {
         println("Detected platform is $platform")
         Files.copy(oxipng, file.toPath(), StandardCopyOption.REPLACE_EXISTING)
         if (license != null) {
-            Files.copy(license, file.resolveAndMakeSibling("OXIPNG_LICENSE").toPath(), StandardCopyOption.REPLACE_EXISTING)
+            Files.copy(
+                license,
+                file.resolveAndMakeSibling("OXIPNG_LICENSE").toPath(),
+                StandardCopyOption.REPLACE_EXISTING
+            )
         } else {
             println("Failed to unpack oxipng license, oxipng is licensed under the MIT license, Copyright (c) 2016 Joshua Holmer")
         }
@@ -47,7 +51,8 @@ object OxipngManager {
     }
 
     fun optimize(file: File) {
-        invokeProcess(oxipng,
+        invokeProcess(
+            oxipng,
             file.absolutePath,
             "-o", "max",          // Maximum optimization level
             "--strip", "all",     // Strip all metadata

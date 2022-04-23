@@ -12,6 +12,7 @@ import java.io.File
 abstract class OptimizeJarsTask : DefaultTask() {
     @get:Input
     abstract val buildDir: Property<String>
+
     @get:Input
     abstract val extension: Property<MachetePluginExtension>
 
