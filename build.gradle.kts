@@ -12,21 +12,18 @@ group = "io.github.p03w"
 version = "1.0.0"
 description = "A gradle plugin to optimize built jars through individual file optimizations and increased compression"
 
+//region Dependencies
 repositories {
     mavenCentral()
-}
-
-buildscript {
-    dependencies {
-        classpath(kotlin("gradle-plugin"))
-    }
 }
 
 dependencies {
     shadow("com.google.code.gson:gson:2.9.0")
     shadow("net.lingala.zip4j:zip4j:2.10.0")
 }
+//endregion
 
+//region Task Configure
 tasks.withType<ShadowJar> {
     configurations = listOf(
         project.configurations.getByName("shadow")
@@ -52,7 +49,9 @@ tasks.withType<ShadowJar> {
     archiveClassifier.set("")
     archiveVersion.set(project.version.toString())
 }
+//endregion
 
+//region PLugin Configure
 gradlePlugin {
     plugins {
         create("machetePlugin") {
@@ -69,3 +68,4 @@ pluginBundle {
     description = project.description
     tags = listOf("jar", "build", "jvm", "compress")
 }
+//endregion
