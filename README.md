@@ -11,7 +11,7 @@ as it will collect output JARs that are known to be usable artifacts and optimiz
 - JSON files are minimized by reading+writing through GSON, which strips any whitespace.
 - PNG files are run through the [Oxipng](https://github.com/shssoichiro/oxipng) project on maximum compression
 - Nested JAR files are unpacked and have the same optimizations run on them
-- The final result is them compressed with DEFLATE level 9, providing modest overall compression (bytecode doesn't compress well unfortunately)
+- The final result is then compressed with DEFLATE level 9, providing modest overall compression (bytecode doesn't compress well unfortunately)
 
 More optimizations are planned as well, such as XML minification
 

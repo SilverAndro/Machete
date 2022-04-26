@@ -37,12 +37,14 @@ object OxipngManager {
         // Grab the license
         val license = this::class.java.getResourceAsStream("/oxipng/OXIPNG_LICENSE")
 
-        // Make sure its .exe if windows
+        // Make sure its .exe if windows, executable if linux/mac
         val file = if (platform == Platform.WINDOWS) {
             tempDir.resolveAndMake("oxipng.exe")
         } else {
             tempDir.resolveAndMake("oxipng")
         }
+
+        file.setExecutable(true)
 
         println("Detected platform is $platform")
         // Copy out oxipng, overwriting any previous copies
