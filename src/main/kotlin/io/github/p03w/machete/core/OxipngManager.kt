@@ -62,6 +62,10 @@ object OxipngManager {
                 err.printStackTrace()
             }
         }
+        if (file.canExecute().not()) {
+            System.err.println("Could not set executable for oxipng!\nPlease comment on https://github.com/P03W/Machete/issues/1")
+            return
+        }
 
         // Unpack or display the license, in compliance with the MIT license which states:
         // "The above copyright notice and this permission notice shall be included in all
@@ -79,15 +83,17 @@ object OxipngManager {
     }
 
     fun optimize(file: File) {
-        // Run oxipng with every optimization available
-        invokeProcess(
-            oxipng,
-            file.absolutePath,
-            "-o", "max",          // Maximum optimization level
-            "--strip", "all",     // Strip all metadata
-            "-a",                 // Alpha optimizations,
-            "--out", file.absolutePath
-        )
+        if (this::oxipng.isInitialized) {
+            // Run oxipng with every optimization available
+            invokeProcess(
+                oxipng,
+                file.absolutePath,
+                "-o", "max",          // Maximum optimization level
+                "--strip", "all",     // Strip all metadata
+                "-a",                 // Alpha optimizations,
+                "--out", file.absolutePath
+            )
+        }
     }
 
     enum class Platform {

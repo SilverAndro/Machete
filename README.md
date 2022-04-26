@@ -22,7 +22,7 @@ the plugin to your project, and it should work immediately.
 
 ```
 plugins {
-	id 'io.github.p03w.machete' version '1.0.0'
+	id 'io.github.p03w.machete' version '1.0.3'
 }
 ```
 
