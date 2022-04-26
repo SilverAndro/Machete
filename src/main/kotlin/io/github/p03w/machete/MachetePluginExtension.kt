@@ -16,16 +16,6 @@ abstract class MachetePluginExtension {
     abstract val ignoredTasks: SetProperty<String>
 
     /**
-     * A set of strings denoting additional jars to process relative to build/libs/
-     */
-    abstract val additionalJars: SetProperty<String>
-
-    /**
-     * A set of strings denoting jars to exclude relative to build/libs/
-     */
-    abstract val ignoredJars: SetProperty<String>
-
-    /**
      * If the original files should be kept by writing optimized ones with "-optimized" at the end of the file name
      */
     abstract val keepOriginal: Property<Boolean>

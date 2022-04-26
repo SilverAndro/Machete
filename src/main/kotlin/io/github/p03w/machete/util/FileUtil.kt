@@ -12,6 +12,15 @@ fun File.resolveAndMakeSiblingDir(relativeFile: String): File {
 }
 
 /**
+ * Resolves a directory, calls .mkdirs, and returns the new directory
+ */
+fun File.resolveAndMakeDir(relativeFile: String): File {
+    val res = resolve(relativeFile)
+    res.mkdirs()
+    return res
+}
+
+/**
  * Resolves a sibling file, calls .createNewFile, and returns the new file
  */
 fun File.resolveAndMakeSibling(relativeFile: String): File {

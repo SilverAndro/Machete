@@ -6,8 +6,10 @@ import io.github.p03w.machete.core.OxipngManager
 import io.github.p03w.machete.tasks.DumpTasksWithOutputJarsTask
 import io.github.p03w.machete.tasks.OptimizeJarsTask
 import io.github.p03w.machete.util.knownGoodTasks
+import io.github.p03w.machete.util.resolveAndMakeDir
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.configurationcache.extensions.capitalized
 import java.io.File
 
 class MachetePlugin : Plugin<Project> {
@@ -21,10 +23,9 @@ class MachetePlugin : Plugin<Project> {
         OxipngManager.tempDir = buildDir
         OxipngManager.unpackOxipng()
 
-
-        val optimizeTask = project.tasks.register("optimizeOutputJars", OptimizeJarsTask::class.java) { task ->
-            var jarsToOptimize = mutableSetOf<File>()
+        project.afterEvaluate {
             val tasksToCheck = knownGoodTasks.toMutableSet()
+
             extension.additionalTasks.orNull?.let {
                 tasksToCheck.addAll(it)
             }
@@ -32,38 +33,32 @@ class MachetePlugin : Plugin<Project> {
                 tasksToCheck.removeAll(it)
             }
 
-            tasksToCheck.forEach {
-                val found = project.tasks.findByName(it)
+            tasksToCheck.forEach { taskName ->
+                val found = project.tasks.findByName(taskName)
                 if (found != null) {
-                    jarsToOptimize.addAll(found.outputs.files)
+                    val toOptimize = found.outputs.files
+                    val optimizeTask = project.tasks.register(
+                        "optimizeOutputsOf${taskName.capitalized()}",
+                        OptimizeJarsTask::class.java
+                    ) { optimizeTask ->
+                        optimizeTask.group = "machete"
+
+                        optimizeTask.inputs.files(toOptimize)
+                        if (extension.keepOriginal.get().not()) {
+                            optimizeTask.outputs.files(toOptimize)
+                        } else {
+                            optimizeTask.outputs.files(toOptimize.map { file ->
+                                file.resolveSibling(file.nameWithoutExtension + "-optimized.jar")
+                            })
+                        }
+
+                        // Give everything its own sibling dir to prevent overlapping on parallel tasks
+                        optimizeTask.buildDir.set(buildDir.resolveAndMakeDir(taskName).absolutePath)
+                        optimizeTask.extension.set(extension)
+                    }
+                    found.finalizedBy(optimizeTask)
                 }
             }
-
-            extension.additionalJars.orNull?.let { additional ->
-                jarsToOptimize.addAll(additional.map { File("${project.buildDir.absolutePath}/libs/$it") })
-            }
-            extension.ignoredJars.orNull?.let { ignored ->
-                jarsToOptimize = jarsToOptimize.subtract(
-                    ignored.mapTo(mutableSetOf()) { File("${project.buildDir.absolutePath}/libs/$it") }
-                ).toMutableSet()
-            }
-
-            task.inputs.files(jarsToOptimize)
-            if (extension.keepOriginal.get().not()) {
-                task.outputs.files(jarsToOptimize)
-            } else {
-                task.outputs.files(jarsToOptimize.map {
-                    it.resolveSibling(it.nameWithoutExtension + "-optimized.jar")
-                })
-            }
-
-            task.buildDir.set(buildDir.absolutePath)
-            task.extension.set(extension)
-        }
-
-        project.plugins.withId("java-base") {
-            val buildTask = project.tasks.getByName("build")
-            buildTask.finalizedBy(optimizeTask)
         }
 
         project.tasks.register("dumpTasksWithOutputJars", DumpTasksWithOutputJarsTask::class.java)

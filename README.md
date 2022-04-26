@@ -22,7 +22,7 @@ the plugin to your project, and it should work immediately.
 
 ```
 plugins {
-	id 'io.github.p03w.machete' version '1.0.3'
+	id 'io.github.p03w.machete' version '1.0.4'
 }
 ```
 
@@ -31,7 +31,6 @@ plugins {
 To configure the plugin, use the `machete` block. This allows you to
 
 - Add or remove tasks to pull output JARs from (`additionalTasks`/`ignoredTasks`, also please consider opening a PR if you use these)
-- Add or remove JAR files to optimize (`additionalJars`/`ignoredJars`)
 - Disable overwriting the original artifacts (`keepOriginal`)
 
 To locate tasks that can be added, use the `dumpTasksWithOutputJars` task, that will automatically list any tasks with output JARs.
