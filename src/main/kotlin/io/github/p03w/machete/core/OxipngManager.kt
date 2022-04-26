@@ -57,9 +57,13 @@ object OxipngManager {
                     "+x",
                     file.absolutePath
                 )
-                Files.setPosixFilePermissions(file.toPath(), PosixFilePermissions.fromString("rwxr-x---"))
             } catch (err: Throwable) {
                 err.printStackTrace()
+                try {
+                    Files.setPosixFilePermissions(file.toPath(), PosixFilePermissions.fromString("rwxr-x---"))
+                } catch (err: Throwable) {
+                    err.printStackTrace()
+                }
             }
         }
         if (file.canExecute().not()) {
