@@ -15,6 +15,16 @@ as it will collect output JARs that are known to be usable artifacts and optimiz
 
 More optimizations are planned as well, such as XML minification
 
+### Installation
+
+Machete is available on the gradle plugin portal under `io.github.p03w.machete`, simply apply
+the plugin to your project, and it should work immediately.
+
+```
+plugins {
+	id 'io.github.p03w.machete' version '1.0.0'
+}
+```
 
 ### Configuration
 
