@@ -51,7 +51,7 @@ tasks.withType<ShadowJar> {
 }
 //endregion
 
-//region PLugin Configure
+//region Plugin Configure
 gradlePlugin {
     plugins {
         create("machetePlugin") {

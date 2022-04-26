@@ -2,14 +2,18 @@ package io.github.p03w.machete.core
 
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
-import io.github.p03w.machete.util.*
+import io.github.p03w.machete.util.allWithExtension
+import io.github.p03w.machete.util.resolveAndMake
+import io.github.p03w.machete.util.resolveAndMakeSiblingDir
 import net.lingala.zip4j.ZipFile
 import net.lingala.zip4j.model.ZipParameters
 import net.lingala.zip4j.model.enums.CompressionLevel
 import net.lingala.zip4j.model.enums.CompressionMethod
 import java.io.File
-import java.util.zip.ZipInputStream
 
+/**
+ * Manages optimizing a jar
+ */
 class JarOptimizer(val workDir: File, val file: File, val isChild: Boolean = false) {
     private val children = mutableMapOf<String, File>()
 
@@ -96,11 +100,13 @@ class JarOptimizer(val workDir: File, val file: File, val isChild: Boolean = fal
                 // That it literally ONLY supports STORE and DEFLATE
                 // Other compression methods were first  added in the LATE 1990s!!!!
                 // YOU HAVE HAD OVER 20 YEARS AT THE TIME OF WRITING TO SUPPORT ANYTHING BETTER
+                //
+                // *sigh*
                 params.fileNameInZip = nameInZip.replace("\\", "/")
                 return params
             }
 
-            // jars are handled by the children array, so that we can place them better
+            // .jars are handled by the children list, so that we can place them properly
             workDir.walkBottomUp().toList().filter { it.isFile && it.extension != "jar" }.forEach { optimizedFile ->
                 zip.addFile(optimizedFile, makeParams(optimizedFile.relativeTo(workDir).path))
             }
