@@ -1,7 +1,7 @@
 # Machete
 
 Machete is a gradle plugin that attempts to optimize the size of output JARs
-through both individual file optimizations and overall compression increases.
+through both individual file optimizations and overall compression increases inspired by the [Detonater](https://github.com/EnnuiL/Detonater) project.
 
 Simply applying the plugin should be enough to apply any optimizations in a standard environment,
 as it will collect output JARs that are known to be usable artifacts and optimize them after the `build` task.
