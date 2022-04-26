@@ -6,6 +6,7 @@ import io.github.p03w.machete.util.resolveAndMakeSibling
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.StandardCopyOption
+import java.nio.file.attribute.PosixFilePermissions
 
 /**
  * Manages the Oxipng file
@@ -45,6 +46,9 @@ object OxipngManager {
         }
 
         file.setExecutable(true)
+        if (platform != Platform.WINDOWS) {
+            Files.setPosixFilePermissions(file.toPath(), PosixFilePermissions.fromString("rwxr-x---"))
+        }
 
         println("Detected platform is $platform")
         // Copy out oxipng, overwriting any previous copies
