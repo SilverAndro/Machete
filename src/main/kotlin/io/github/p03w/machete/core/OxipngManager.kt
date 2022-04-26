@@ -45,14 +45,24 @@ object OxipngManager {
             tempDir.resolveAndMake("oxipng")
         }
 
-        file.setExecutable(true)
-        if (platform != Platform.WINDOWS) {
-            Files.setPosixFilePermissions(file.toPath(), PosixFilePermissions.fromString("rwxr-x---"))
-        }
-
         println("Detected platform is $platform")
         // Copy out oxipng, overwriting any previous copies
         Files.copy(oxipng, file.toPath(), StandardCopyOption.REPLACE_EXISTING)
+        file.setExecutable(true)
+        if (platform != Platform.WINDOWS) {
+            // Linux D:
+            try {
+                invokeProcess(
+                    "chmod",
+                    "+x",
+                    file.absolutePath
+                )
+                Files.setPosixFilePermissions(file.toPath(), PosixFilePermissions.fromString("rwxr-x---"))
+            } catch (err: Throwable) {
+                err.printStackTrace()
+            }
+        }
+
         // Unpack or display the license, in compliance with the MIT license which states:
         // "The above copyright notice and this permission notice shall be included in all
         // copies or substantial portions of the Software."
