@@ -5,11 +5,11 @@ package io.github.p03w.machete
 import io.github.p03w.machete.core.OxipngManager
 import io.github.p03w.machete.tasks.DumpTasksWithOutputJarsTask
 import io.github.p03w.machete.tasks.OptimizeJarsTask
+import io.github.p03w.machete.util.capital
 import io.github.p03w.machete.util.knownGoodTasks
 import io.github.p03w.machete.util.resolveAndMakeDir
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.configurationcache.extensions.capitalized
 import java.io.File
 
 class MachetePlugin : Plugin<Project> {
@@ -38,7 +38,7 @@ class MachetePlugin : Plugin<Project> {
                 if (found != null) {
                     val toOptimize = found.outputs.files
                     val optimizeTask = project.tasks.register(
-                        "optimizeOutputsOf${taskName.capitalized()}",
+                        "optimizeOutputsOf${taskName.capital()}",
                         OptimizeJarsTask::class.java
                     ) { optimizeTask ->
                         optimizeTask.group = "machete"
