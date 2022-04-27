@@ -31,6 +31,7 @@ class JarOptimizer(val workDir: File, val file: File, val isChild: Boolean = fal
 
     private fun optimizeJSON() {
         workDir.allWithExtension("json") { file ->
+            if (file.name.equals("fabric.mod.json")) return@allWithExtension
             val text = file.bufferedReader().use {
                 it.readText()
             }
