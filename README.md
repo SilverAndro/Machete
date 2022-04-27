@@ -20,11 +20,7 @@ More optimizations are planned as well, such as XML minification
 Machete is available on the gradle plugin portal under `io.github.p03w.machete`, simply apply
 the plugin to your project, and it should work immediately.
 
-```
-plugins {
-	id 'io.github.p03w.machete' version '1.0.4'
-}
-```
+See [here](https://plugins.gradle.org/plugin/io.github.p03w.machete) for in-depth install instructions.
 
 ### Configuration
 
