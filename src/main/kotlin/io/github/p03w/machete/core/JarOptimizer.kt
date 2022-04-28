@@ -4,12 +4,14 @@ import io.github.p03w.machete.core.json.JsonMinifier
 import io.github.p03w.machete.util.allWithExtension
 import io.github.p03w.machete.util.resolveAndMake
 import io.github.p03w.machete.util.resolveAndMakeSiblingDir
+import io.github.p03w.machete.util.unzip
 import net.lingala.zip4j.ZipFile
 import net.lingala.zip4j.model.ZipParameters
 import net.lingala.zip4j.model.enums.CompressionLevel
 import net.lingala.zip4j.model.enums.CompressionMethod
 import java.io.File
 import java.util.jar.JarFile
+import java.util.jar.JarInputStream
 
 /**
  * Manages optimizing a jar
@@ -23,12 +25,12 @@ class JarOptimizer(val workDir: File, val file: File, val isChild: Boolean = fal
             it.manifest.entries.forEach { (t, u) ->
                 if (u.entries.find { it.key.toString().contains("Digest") } != null) {
                     toIgnore.add(t.split("/").last())
-                    println("Will not optimize ${t.split("/").last()} because it has a digital signature attached")
                 }
             }
         }
-        ZipFile(file).use {
-            it.extractAll(workDir.path)
+
+        JarInputStream(file.inputStream().buffered()).use {
+            it.unzip(workDir)
         }
     }
 
