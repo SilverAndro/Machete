@@ -92,7 +92,7 @@ object OxipngManager {
             invokeProcess(
                 oxipng,
                 file.absolutePath,
-                "-o", "max",          // Maximum optimization level
+                "-o", "4",            // Max takes *forever* and barely does anything
                 "--strip", "all",     // Strip all metadata
                 "-a",                 // Alpha optimizations,
                 "--out", file.absolutePath

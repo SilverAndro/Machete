@@ -9,21 +9,31 @@ import net.lingala.zip4j.model.ZipParameters
 import net.lingala.zip4j.model.enums.CompressionLevel
 import net.lingala.zip4j.model.enums.CompressionMethod
 import java.io.File
+import java.util.jar.JarFile
 
 /**
  * Manages optimizing a jar
  */
 class JarOptimizer(val workDir: File, val file: File, val isChild: Boolean = false) {
     private val children = mutableMapOf<String, File>()
+    private val toIgnore = mutableListOf<String>()
 
     fun unpack() {
+        JarFile(file).use {
+            it.manifest.entries.forEach { (t, u) ->
+                if (u.entries.find { it.key.toString().contains("Digest") } != null) {
+                    toIgnore.add(t.split("/").last())
+                    println("Will not optimize ${t.split("/").last()} because it has a digital signature attached")
+                }
+            }
+        }
         ZipFile(file).use {
             it.extractAll(workDir.path)
         }
     }
 
     private fun optimizePNG() {
-        workDir.allWithExtension("png") {
+        workDir.allWithExtension("png", toIgnore) {
             try {
                 OxipngManager.optimize(it)
             } catch (err: Throwable) {
@@ -34,7 +44,7 @@ class JarOptimizer(val workDir: File, val file: File, val isChild: Boolean = fal
     }
 
     private fun optimizeJSON() {
-        workDir.allWithExtension("json") { file ->
+        workDir.allWithExtension("json", toIgnore) { file ->
             val text = file.bufferedReader().use {
                 it.readText()
             }
@@ -52,7 +62,7 @@ class JarOptimizer(val workDir: File, val file: File, val isChild: Boolean = fal
     }
 
     private fun optimizeChildren() {
-        workDir.allWithExtension("jar") { file ->
+        workDir.allWithExtension("jar", toIgnore) { file ->
             val unpack = JarOptimizer(workDir.resolveAndMakeSiblingDir(file.nameWithoutExtension), file, true)
             unpack.unpack()
             unpack.optimize()
