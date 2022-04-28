@@ -1,15 +1,13 @@
-import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     java
     kotlin("jvm") version "1.6.20"
     id("com.gradle.plugin-publish") version "1.0.0-rc-1"
-    id("com.github.johnrengelman.shadow") version "7.1.2"
 }
 
 group = "io.github.p03w"
-version = "1.0.7"
+version = "1.0.8"
 description = "A gradle plugin to optimize built jars through individual file optimizations and increased compression"
 
 //region Dependencies
@@ -18,22 +16,11 @@ repositories {
 }
 
 dependencies {
-    shadow("net.lingala.zip4j:zip4j:2.10.0")
+
 }
 //endregion
 
 //region Task Configure
-tasks.withType<ShadowJar> {
-    configurations = listOf(
-        project.configurations.getByName("shadow")
-    )
-
-    relocate("com.google", "shadow.google")
-    relocate("net.lingala", "shadow.lingala")
-
-    minimize()
-}
-
 tasks.withType<KotlinCompile> {
     kotlinOptions.jvmTarget = "1.8"
     kotlinOptions.freeCompilerArgs = listOf("-opt-in=kotlin.RequiresOptIn")
@@ -41,12 +28,6 @@ tasks.withType<KotlinCompile> {
 
 tasks.withType<GenerateModuleMetadata> {
     enabled = false
-}
-
-tasks.withType<ShadowJar> {
-    archiveBaseName.set("machete")
-    archiveClassifier.set("")
-    archiveVersion.set(project.version.toString())
 }
 //endregion
 
