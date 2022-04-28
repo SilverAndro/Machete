@@ -72,6 +72,7 @@ class JsonMinifier(private val original: String) {
             when (input.current()) {
                 '"' -> {
                     val key = parseString(input)
+                    input.takeAllOf(wsRegex)
                     input.take(':')
                     val value = parseAny(input)
                     obj.put(key, value)
@@ -131,6 +132,6 @@ class JsonMinifier(private val original: String) {
 
     companion object {
         val wsRegex = Regex("[ \r\n\t]")
-        val numberRegex = Regex("-?\\d")
+        val numberRegex = Regex("[-\\d.eE+]")
     }
 }
