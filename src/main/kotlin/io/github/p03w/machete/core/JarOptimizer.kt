@@ -5,13 +5,13 @@ import io.github.p03w.machete.util.allWithExtension
 import io.github.p03w.machete.util.resolveAndMake
 import io.github.p03w.machete.util.resolveAndMakeSiblingDir
 import io.github.p03w.machete.util.unzip
-import net.lingala.zip4j.ZipFile
-import net.lingala.zip4j.model.ZipParameters
-import net.lingala.zip4j.model.enums.CompressionLevel
-import net.lingala.zip4j.model.enums.CompressionMethod
 import java.io.File
+import java.nio.file.Files
+import java.util.jar.JarEntry
 import java.util.jar.JarFile
 import java.util.jar.JarInputStream
+import java.util.jar.JarOutputStream
+import java.util.zip.Deflater
 
 /**
  * Manages optimizing a jar
@@ -84,51 +84,32 @@ class JarOptimizer(val workDir: File, val file: File, val isChild: Boolean = fal
 
     fun repackTo(file: File) {
         file.delete()
-        val zip = ZipFile(file)
+        val jar = JarOutputStream(file.outputStream().buffered())
 
-        zip.use {
-            fun makeParams(nameInZip: String): ZipParameters {
-                val params = ZipParameters()
-                params.lastModifiedFileTime = 0
-                // STORE allows any common classes/references in libraries to be
-                // Compressed alongside instead of sitting compressed itself
-                if (isChild) {
-                    params.compressionMethod = CompressionMethod.STORE
-                    params.compressionLevel = CompressionLevel.NO_COMPRESSION
-                } else {
-                    // Cronch
-                    params.compressionMethod = CompressionMethod.DEFLATE
-                    params.compressionLevel = CompressionLevel.ULTRA
-                }
+        if (isChild) {
+            jar.setLevel(Deflater.NO_COMPRESSION)
+        } else {
+            jar.setLevel(Deflater.BEST_COMPRESSION)
+        }
 
-                // Fix windows, because OF COURSE its windows
-                // I totally didn't spend hours trying to debug why classloading was failing
-                // Opening the output in dozens of different .zip explorers
-                // Even locating AZip, a 20-year-old ADA based program for zip exploration
-                // Only for the issue to be that
-                // EVERY
-                // SINGLE
-                // ONE
-                // Was smarter than the java implementation, and could "fix" file paths
-                // Screw windows, and screw legacy code
-                //
-                // Fun fact! The java implementation is SO OLD
-                // That it literally ONLY supports STORE and DEFLATE
-                // Other compression methods were first  added in the LATE 1990s!!!!
-                // YOU HAVE HAD OVER 20 YEARS AT THE TIME OF WRITING TO SUPPORT ANYTHING BETTER
-                //
-                // *sigh*
-                params.fileNameInZip = nameInZip.replace("\\", "/")
-                return params
+        jar.use {
+            fun File.pathInJar(): String {
+                return this.relativeTo(workDir).path.replace("\\", "/")
             }
 
             // .jars are handled by the children list, so that we can place them properly
             workDir.walkBottomUp().toList().filter { it.isFile && it.extension != "jar" }.forEach { optimizedFile ->
-                zip.addFile(optimizedFile, makeParams(optimizedFile.relativeTo(workDir).path))
+                val entry = JarEntry(optimizedFile.pathInJar())
+                jar.putNextEntry(entry)
+                Files.copy(optimizedFile.toPath(), it)
+                jar.closeEntry()
             }
 
             children.forEach { (path, childJar) ->
-                zip.addFile(childJar, makeParams(path))
+                val entry = JarEntry(path.replace("\\", "/"))
+                jar.putNextEntry(entry)
+                Files.copy(childJar.toPath(), it)
+                jar.closeEntry()
             }
         }
     }
