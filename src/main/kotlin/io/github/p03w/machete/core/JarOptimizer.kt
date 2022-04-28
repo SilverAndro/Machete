@@ -1,7 +1,6 @@
 package io.github.p03w.machete.core
 
-import com.google.gson.Gson
-import com.google.gson.GsonBuilder
+import io.github.p03w.machete.core.json.JsonMinifier
 import io.github.p03w.machete.util.allWithExtension
 import io.github.p03w.machete.util.resolveAndMake
 import io.github.p03w.machete.util.resolveAndMakeSiblingDir
@@ -31,18 +30,21 @@ class JarOptimizer(val workDir: File, val file: File, val isChild: Boolean = fal
 
     private fun optimizeJSON() {
         workDir.allWithExtension("json") { file ->
-            if (file.name.equals("fabric.mod.json")) return@allWithExtension
             val text = file.bufferedReader().use {
                 it.readText()
             }
             file.bufferedWriter().use {
                 try {
+                    val final = JsonMinifier(text)
+                    /*
                     val jsonObj = Gson().fromJson(text, Any::class.java)
                     val final = GsonBuilder().disableHtmlEscaping().serializeNulls().create().toJson(jsonObj)
-                    it.write(final)
+                     */
+                    it.write(final.toString())
                 } catch (err: Throwable) {
                     println("Failed to optimize ${file.relativeTo(workDir).path}")
                     err.printStackTrace()
+                    it.write(text)
                 }
             }
         }
