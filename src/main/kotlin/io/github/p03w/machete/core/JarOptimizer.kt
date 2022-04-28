@@ -24,7 +24,12 @@ class JarOptimizer(val workDir: File, val file: File, val isChild: Boolean = fal
 
     private fun optimizePNG() {
         workDir.allWithExtension("png") {
-            OxipngManager.optimize(it)
+            try {
+                OxipngManager.optimize(it)
+            } catch (err: Throwable) {
+                println("Failed to optimize ${file.relativeTo(workDir).path}")
+                err.printStackTrace()
+            }
         }
     }
 
@@ -36,10 +41,6 @@ class JarOptimizer(val workDir: File, val file: File, val isChild: Boolean = fal
             file.bufferedWriter().use {
                 try {
                     val final = JsonMinifier(text)
-                    /*
-                    val jsonObj = Gson().fromJson(text, Any::class.java)
-                    val final = GsonBuilder().disableHtmlEscaping().serializeNulls().create().toJson(jsonObj)
-                     */
                     it.write(final.toString())
                 } catch (err: Throwable) {
                     println("Failed to optimize ${file.relativeTo(workDir).path}")
