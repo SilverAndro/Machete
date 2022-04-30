@@ -1,10 +1,14 @@
 package io.github.p03w.machete.core
 
+import io.github.p03w.machete.config.MachetePluginExtension
 import io.github.p03w.machete.core.json.JsonMinifier
 import io.github.p03w.machete.util.allWithExtension
 import io.github.p03w.machete.util.resolveAndMake
 import io.github.p03w.machete.util.resolveAndMakeSiblingDir
 import io.github.p03w.machete.util.unzip
+import org.objectweb.asm.ClassReader
+import org.objectweb.asm.ClassWriter
+import org.objectweb.asm.tree.ClassNode
 import java.io.File
 import java.nio.file.Files
 import java.util.jar.JarEntry
@@ -16,7 +20,12 @@ import java.util.zip.Deflater
 /**
  * Manages optimizing a jar
  */
-class JarOptimizer(val workDir: File, val file: File, val isChild: Boolean = false) {
+class JarOptimizer(
+    val workDir: File,
+    val file: File,
+    val config: MachetePluginExtension,
+    val isChild: Boolean = false
+) {
     private val children = mutableMapOf<String, File>()
     private val toIgnore = mutableListOf<String>()
 
@@ -63,9 +72,9 @@ class JarOptimizer(val workDir: File, val file: File, val isChild: Boolean = fal
         }
     }
 
-    private fun optimizeChildren() {
+    private fun optimizeJarInJar() {
         workDir.allWithExtension("jar", toIgnore) { file ->
-            val unpack = JarOptimizer(workDir.resolveAndMakeSiblingDir(file.nameWithoutExtension), file, true)
+            val unpack = JarOptimizer(workDir.resolveAndMakeSiblingDir(file.nameWithoutExtension), file, config, true)
             unpack.unpack()
             unpack.optimize()
 
@@ -76,10 +85,35 @@ class JarOptimizer(val workDir: File, val file: File, val isChild: Boolean = fal
         }
     }
 
+    private fun optimizeClassFiles() {
+        workDir.allWithExtension("class", toIgnore) { file ->
+            val reader = file.inputStream().buffered().use {
+                ClassReader(it)
+            }
+            val node = ClassNode()
+            reader.accept(node, 0)
+
+            if (config.optimizations.stripLVT.get()) {
+                node.methods.forEach {
+                    it.localVariables?.clear()
+                }
+            }
+
+            val writer = ClassWriter(0)
+            node.accept(writer)
+            file.outputStream().use { stream ->
+                stream.write(writer.toByteArray())
+            }
+        }
+    }
+
     fun optimize() {
-        optimizeChildren()
-        optimizePNG()
-        optimizeJSON()
+        val opti = config.optimizations
+        if (opti.jarInJar.get())   optimizeJarInJar()
+        if (opti.png.get())        optimizePNG()
+        if (opti.json.get())       optimizeJSON()
+
+        if (opti.stripLVT.get())   optimizeClassFiles()
     }
 
     fun repackTo(file: File) {
@@ -98,7 +132,9 @@ class JarOptimizer(val workDir: File, val file: File, val isChild: Boolean = fal
             }
 
             // .jars are handled by the children list, so that we can place them properly
-            workDir.walkBottomUp().toList().filter { it.isFile && it.extension != "jar" }.forEach { optimizedFile ->
+            workDir.walkBottomUp().toList().filter {
+                it.isFile && (it.extension != "jar" || !config.optimizations.jarInJar.get())
+            }.forEach { optimizedFile ->
                 val entry = JarEntry(optimizedFile.pathInJar())
                 jar.putNextEntry(entry)
                 Files.copy(optimizedFile.toPath(), it)

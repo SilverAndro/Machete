@@ -2,6 +2,7 @@
 
 package io.github.p03w.machete
 
+import io.github.p03w.machete.config.MachetePluginExtension
 import io.github.p03w.machete.core.OxipngManager
 import io.github.p03w.machete.tasks.DumpTasksWithOutputJarsTask
 import io.github.p03w.machete.tasks.OptimizeJarsTask
@@ -55,6 +56,9 @@ class MachetePlugin : Plugin<Project> {
                         // Give everything its own sibling dir to prevent overlapping on parallel tasks
                         optimizeTask.buildDir.set(buildDir.resolveAndMakeDir(taskName).absolutePath)
                         optimizeTask.extension.set(extension)
+
+                        // Hook after to prevent some issues occasionally with ordering
+                        optimizeTask.dependsOn(found)
                     }
                     found.finalizedBy(optimizeTask)
                 }

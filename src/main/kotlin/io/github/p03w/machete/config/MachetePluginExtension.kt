@@ -1,7 +1,8 @@
-package io.github.p03w.machete
+package io.github.p03w.machete.config
 
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.SetProperty
+import org.gradle.api.tasks.Nested
 
 @Suppress("LeakingThis")
 abstract class MachetePluginExtension {
@@ -19,6 +20,12 @@ abstract class MachetePluginExtension {
      * If the original files should be kept by writing optimized ones with "-optimized" at the end of the file name
      */
     abstract val keepOriginal: Property<Boolean>
+
+    /**
+     * What optimizations are enabled/disabled
+     */
+    @get:Nested
+    abstract val optimizations: Optimizations
 
     init {
         keepOriginal.convention(false)

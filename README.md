@@ -9,11 +9,15 @@ as it will collect output JARs that are known to be usable artifacts and optimiz
 ### Optimizations
 
 - JSON files are minimized by reading+writing through GSON, which strips any whitespace.
-- PNG files are run through the [Oxipng](https://github.com/shssoichiro/oxipng) project on maximum compression
+- PNG files are run through the [Oxipng](https://github.com/shssoichiro/oxipng) project on maximum compression and metadata removal
 - Nested JAR files are unpacked and have the same optimizations run on them
 - The final result is then compressed with DEFLATE level 9, providing modest overall compression (bytecode doesn't compress well unfortunately)
 
-More optimizations are planned as well, such as XML minification
+There are also some disabled-by-default optimizations as they are technically lossy on the behavior of the jar.
+
+- Local Variable Table stripping, disabled because this table is used for the "helpful NPEs" feature in java 14+
+
+More optimizations are planned as well, such as XML minification or further lossy ones
 
 ### Installation
 
@@ -28,6 +32,28 @@ To configure the plugin, use the `machete` block. This allows you to
 
 - Add or remove tasks to pull output JARs from (`additionalTasks`/`ignoredTasks`, also please consider opening a PR if you use these)
 - Disable overwriting the original artifacts (`keepOriginal`)
+- Enable or disable specific optimizations (`optimizations`)
+
+An example full config may look like:
+```
+machete {
+    // Also optimize the output of task "foo"
+    additionalTasks.add("foo")
+    // Do not optimize the output of "bar"
+    ignoredTasks.add("bar")
+    
+    // Keep the original copies in the build directory
+    keepOriginal = true
+    
+    // Disable the JIJ, PNG, and JSON optimizations
+    optimizations.jarInJar = false
+    optimizations.png = false
+    optimizations.json = false
+    
+    // Enable local variable table stripping
+    optimizations.stripLVT = true
+}
+```
 
 To locate tasks that can be added, use the `dumpTasksWithOutputJars` task, that will automatically list any tasks with output JARs.
 

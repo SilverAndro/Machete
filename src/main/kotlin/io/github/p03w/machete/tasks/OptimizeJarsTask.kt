@@ -1,6 +1,6 @@
 package io.github.p03w.machete.tasks
 
-import io.github.p03w.machete.MachetePluginExtension
+import io.github.p03w.machete.config.MachetePluginExtension
 import io.github.p03w.machete.core.JarOptimizer
 import io.github.p03w.machete.util.resolveAndMakeSibling
 import org.gradle.api.DefaultTask
@@ -23,7 +23,7 @@ abstract class OptimizeJarsTask : DefaultTask() {
             tempJarDir.deleteRecursively()
             tempJarDir.mkdirs()
 
-            val optimizer = JarOptimizer(tempJarDir, it)
+            val optimizer = JarOptimizer(tempJarDir, it, extension.get())
             optimizer.unpack()
             optimizer.optimize()
 

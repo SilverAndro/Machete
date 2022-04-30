@@ -1,13 +1,15 @@
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     java
     kotlin("jvm") version "1.6.20"
     id("com.gradle.plugin-publish") version "1.0.0-rc-1"
+    id("com.github.johnrengelman.shadow") version "7.1.2"
 }
 
 group = "io.github.p03w"
-version = "1.0.8"
+version = "1.0.9"
 description = "A gradle plugin to optimize built jars through individual file optimizations and increased compression"
 
 //region Dependencies
@@ -16,11 +18,24 @@ repositories {
 }
 
 dependencies {
-
+    val asmVer = "9.3"
+    shadow("org.ow2.asm:asm:$asmVer")
+    shadow("org.ow2.asm:asm-tree:$asmVer")
+    shadow("org.ow2.asm:asm-commons:$asmVer")
 }
 //endregion
 
 //region Task Configure
+tasks.withType<ShadowJar> {
+    configurations = listOf(
+        project.configurations.getByName("shadow")
+    )
+
+    relocate("org.ow2.asm", "s_m.ow2.asm")
+
+    minimize()
+}
+
 tasks.withType<KotlinCompile> {
     kotlinOptions.jvmTarget = "1.8"
     kotlinOptions.freeCompilerArgs = listOf("-opt-in=kotlin.RequiresOptIn")
@@ -28,6 +43,12 @@ tasks.withType<KotlinCompile> {
 
 tasks.withType<GenerateModuleMetadata> {
     enabled = false
+}
+
+tasks.withType<ShadowJar> {
+    archiveBaseName.set("machete")
+    archiveClassifier.set("")
+    archiveVersion.set(project.version.toString())
 }
 //endregion
 
