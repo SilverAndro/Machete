@@ -85,7 +85,7 @@ class JarOptimizer(
         }
     }
 
-    private fun optimizeClassFiles() {
+    private fun stripLVT() {
         workDir.allWithExtension("class", toIgnore) { file ->
             val reader = file.inputStream().buffered().use {
                 ClassReader(it)
@@ -93,10 +93,8 @@ class JarOptimizer(
             val node = ClassNode()
             reader.accept(node, 0)
 
-            if (config.optimizations.stripLVT.get()) {
-                node.methods.forEach {
-                    it.localVariables?.clear()
-                }
+            node.methods.forEach {
+                it.localVariables?.clear()
             }
 
             val writer = ClassWriter(0)
@@ -113,7 +111,7 @@ class JarOptimizer(
         if (opti.png.get())        optimizePNG()
         if (opti.json.get())       optimizeJSON()
 
-        if (opti.stripLVT.get())   optimizeClassFiles()
+        if (opti.stripLVT.get())   stripLVT()
     }
 
     fun repackTo(file: File) {
