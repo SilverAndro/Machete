@@ -30,8 +30,8 @@ class JarOptimizer(
     private val toIgnore = mutableListOf<String>()
 
     fun unpack() {
-        JarFile(file).use {
-            it.manifest.entries.forEach { (t, u) ->
+        JarFile(file).use { jarFile ->
+            jarFile.manifest?.entries?.forEach { (t, u) ->
                 if (u.entries.find { it.key.toString().contains("Digest") } != null) {
                     toIgnore.add(t.split("/").last())
                 }
