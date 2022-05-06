@@ -6,5 +6,8 @@ val knownGoodTasks = setOf(
     "jar",
 
     // fabric-loom
-    "remapJar"
+    "remapJar",
+
+    // shadow
+    "shadowJar"
 )

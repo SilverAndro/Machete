@@ -64,4 +64,5 @@ Please see [KnownGoodTasks.kt](https://github.com/P03W/Machete/blob/master/src/m
 If you are using a plugin that doesn't specify its output artifacts, I'm sorry, but I can't add support,
 please consider poking the developer about using proper gradle plugin development techniques.
 
+- [shadow](https://github.com/johnrengelman/shadow)
 - [fabric-loom](https://github.com/FabricMC/fabric-loom/) and most derivatives
