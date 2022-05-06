@@ -22,7 +22,7 @@ class MachetePlugin : Plugin<Project> {
         buildDir.mkdirs()
 
         OxipngManager.tempDir = buildDir
-        OxipngManager.unpackOxipng()
+        OxipngManager.unpackOxipng(project.name, project.logger)
 
         project.afterEvaluate {
             val tasksToCheck = knownGoodTasks.toMutableSet()
@@ -34,15 +34,19 @@ class MachetePlugin : Plugin<Project> {
                 tasksToCheck.removeAll(it)
             }
 
+            project.logger.info("All tasks to check: $tasksToCheck")
+
             tasksToCheck.forEach { taskName ->
                 val found = project.tasks.findByName(taskName)
                 if (found != null) {
+                    project.logger.info("Tasks $taskName exists! Generating a hook task")
                     val toOptimize = found.outputs.files
-                    val optimizeTask = project.tasks.register(
+                    val optimizeTask = project.tasks.create(
                         "optimizeOutputsOf${taskName.capital()}",
                         OptimizeJarsTask::class.java
                     ) { optimizeTask ->
                         optimizeTask.group = "machete"
+                        optimizeTask.description = "An auto-generated task to optimize the output artifacts of $taskName"
 
                         optimizeTask.inputs.files(toOptimize)
                         if (extension.keepOriginal.get().not()) {
@@ -57,9 +61,9 @@ class MachetePlugin : Plugin<Project> {
                         optimizeTask.buildDir.set(buildDir.resolveAndMakeDir(taskName).absolutePath)
                         optimizeTask.extension.set(extension)
 
-                        // Hook after to prevent some issues occasionally with ordering
-                        optimizeTask.dependsOn(found)
                     }
+                    // Hook after to prevent some issues occasionally with ordering
+                    optimizeTask.dependsOn(found)
                     found.finalizedBy(optimizeTask)
                 }
             }

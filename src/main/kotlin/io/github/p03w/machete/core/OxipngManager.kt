@@ -3,6 +3,7 @@ package io.github.p03w.machete.core
 import io.github.p03w.machete.util.invokeProcess
 import io.github.p03w.machete.util.resolveAndMake
 import io.github.p03w.machete.util.resolveAndMakeSibling
+import org.gradle.api.logging.Logger
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.StandardCopyOption
@@ -27,7 +28,7 @@ object OxipngManager {
         }
     }
 
-    fun unpackOxipng() {
+    fun unpackOxipng(name: String, logger: Logger) {
         // Get the file specific to this platform
         val oxipng = when (platform) {
             Platform.WINDOWS -> this::class.java.getResourceAsStream("/oxipng/oxipng-windows.exe")
@@ -45,7 +46,7 @@ object OxipngManager {
             tempDir.resolveAndMake("oxipng")
         }
 
-        println("Detected platform is $platform")
+        logger.info("[$name] Detected platform is $platform")
         // Copy out oxipng, overwriting any previous copies
         Files.copy(oxipng, file.toPath(), StandardCopyOption.REPLACE_EXISTING)
         file.setExecutable(true)
