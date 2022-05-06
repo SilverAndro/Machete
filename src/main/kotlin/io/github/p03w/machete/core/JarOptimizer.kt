@@ -13,9 +13,9 @@ import java.io.File
 import java.nio.file.Files
 import java.util.jar.JarEntry
 import java.util.jar.JarFile
-import java.util.jar.JarInputStream
 import java.util.jar.JarOutputStream
 import java.util.zip.Deflater
+import java.util.zip.ZipInputStream
 
 /**
  * Manages optimizing a jar
@@ -38,7 +38,7 @@ class JarOptimizer(
             }
         }
 
-        JarInputStream(file.inputStream().buffered()).use {
+        ZipInputStream(file.inputStream().buffered()).use {
             it.unzip(workDir)
         }
     }
