@@ -12,7 +12,9 @@ fun ZipInputStream.unzip(outputDir: File) {
     var entry = nextEntry
     while (entry != null) {
         val resolvedPath = outputDir.resolve(entry.name).normalize().toPath()
-        if (!resolvedPath.startsWith(outputDir.path)) { throw RuntimeException("Zip slip somehow, don't do that: " + entry.name) }
+        if (!resolvedPath.startsWith(outputDir.path)) {
+            throw RuntimeException("Zip slip somehow, don't do that: " + entry.name)
+        }
 
         if (entry.isDirectory) {
             Files.createDirectories(resolvedPath)

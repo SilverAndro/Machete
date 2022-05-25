@@ -6,6 +6,7 @@ import io.github.p03w.machete.util.allWithExtension
 import io.github.p03w.machete.util.resolveAndMake
 import io.github.p03w.machete.util.resolveAndMakeSiblingDir
 import io.github.p03w.machete.util.unzip
+import org.gradle.api.Project
 import org.objectweb.asm.ClassReader
 import org.objectweb.asm.ClassWriter
 import org.objectweb.asm.tree.ClassNode
@@ -24,16 +25,21 @@ class JarOptimizer(
     val workDir: File,
     val file: File,
     val config: MachetePluginExtension,
+    val project: Project? = null,
     val isChild: Boolean = false
 ) {
     private val children = mutableMapOf<String, File>()
     private val toIgnore = mutableListOf<String>()
 
+    private val log = project?.logger
+
     fun unpack() {
         JarFile(file).use { jarFile ->
             jarFile.manifest?.entries?.forEach { (t, u) ->
+                // File is signed! JVM will throw some nasty errors if we change this file at all and try to launch
                 if (u.entries.find { it.key.toString().contains("Digest") } != null) {
                     toIgnore.add(t.split("/").last())
+                    log?.info("[${project!!.name}] Will skip file ${t.split("/").last()} as it is signed")
                 }
             }
         }
@@ -46,9 +52,9 @@ class JarOptimizer(
     private fun optimizePNG() {
         workDir.allWithExtension("png", toIgnore) {
             try {
-                OxipngManager.optimize(it)
+                OxipngManager.optimize(it, config.png)
             } catch (err: Throwable) {
-                println("Failed to optimize ${file.relativeTo(workDir).path}")
+                log?.warn("Failed to optimize ${file.relativeTo(workDir).path}")
                 err.printStackTrace()
             }
         }
@@ -64,7 +70,7 @@ class JarOptimizer(
                     val final = JsonMinifier(text)
                     it.write(final.toString())
                 } catch (err: Throwable) {
-                    println("Failed to optimize ${file.relativeTo(workDir).path}")
+                    log?.warn("Failed to optimize ${file.relativeTo(workDir).path}")
                     err.printStackTrace()
                     it.write(text)
                 }
@@ -74,7 +80,8 @@ class JarOptimizer(
 
     private fun optimizeJarInJar() {
         workDir.allWithExtension("jar", toIgnore) { file ->
-            val unpack = JarOptimizer(workDir.resolveAndMakeSiblingDir(file.nameWithoutExtension), file, config, true)
+            val unpack =
+                JarOptimizer(workDir.resolveAndMakeSiblingDir(file.nameWithoutExtension), file, config, project, true)
             unpack.unpack()
             unpack.optimize()
 
@@ -106,12 +113,11 @@ class JarOptimizer(
     }
 
     fun optimize() {
-        val opti = config.optimizations
-        if (opti.jarInJar.get())   optimizeJarInJar()
-        if (opti.png.get())        optimizePNG()
-        if (opti.json.get())       optimizeJSON()
+        if (config.jij.enabled.get()) optimizeJarInJar()
+        if (config.png.enabled.get()) optimizePNG()
+        if (config.json.enabled.get()) optimizeJSON()
 
-        if (opti.stripLVT.get())   stripLVT()
+        if (config.lvtStriping.enabled.get()) stripLVT()
     }
 
     fun repackTo(file: File) {
@@ -131,7 +137,7 @@ class JarOptimizer(
 
             // .jars are handled by the children list, so that we can place them properly
             workDir.walkBottomUp().toList().filter {
-                it.isFile && (it.extension != "jar" || !config.optimizations.jarInJar.get())
+                it.isFile && (it.extension != "jar" || !config.jij.enabled.get())
             }.forEach { optimizedFile ->
                 val entry = JarEntry(optimizedFile.pathInJar())
                 jar.putNextEntry(entry)

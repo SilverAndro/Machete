@@ -4,6 +4,7 @@ package io.github.p03w.machete
 
 import io.github.p03w.machete.config.MachetePluginExtension
 import io.github.p03w.machete.core.OxipngManager
+import io.github.p03w.machete.patches.patches
 import io.github.p03w.machete.tasks.DumpTasksWithOutputJarsTask
 import io.github.p03w.machete.tasks.OptimizeJarsTask
 import io.github.p03w.machete.util.capital
@@ -22,10 +23,12 @@ class MachetePlugin : Plugin<Project> {
         buildDir.mkdirs()
 
         OxipngManager.tempDir = buildDir
-        OxipngManager.unpackOxipng(project.name, project.logger)
+        OxipngManager.unpackOxipng(project.name)
 
         project.afterEvaluate {
             val tasksToCheck = knownGoodTasks.toMutableSet()
+
+            extension.upgrade()
 
             extension.additionalTasks.orNull?.let {
                 tasksToCheck.addAll(it)
@@ -46,7 +49,8 @@ class MachetePlugin : Plugin<Project> {
                         OptimizeJarsTask::class.java
                     ) { optimizeTask ->
                         optimizeTask.group = "machete"
-                        optimizeTask.description = "An auto-generated task to optimize the output artifacts of $taskName"
+                        optimizeTask.description =
+                            "An auto-generated task to optimize the output artifacts of $taskName"
 
                         optimizeTask.inputs.files(toOptimize)
                         if (extension.keepOriginal.get().not()) {
@@ -65,6 +69,15 @@ class MachetePlugin : Plugin<Project> {
                     // Hook after to prevent some issues occasionally with ordering
                     optimizeTask.dependsOn(found)
                     found.finalizedBy(optimizeTask)
+                }
+            }
+
+            // Try and apply any compatibility patches
+            patches.forEach {
+                project.logger.info("Checking if patch ${it::class.simpleName} should apply")
+                if (it.shouldApply(project)) {
+                    project.logger.info("Applying project patch ${it::class.simpleName}")
+                    it.patch(project)
                 }
             }
         }

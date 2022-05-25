@@ -1,22 +1,45 @@
 package io.github.p03w.machete.config
 
 import org.gradle.api.provider.Property
+import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.Optional
 
-@Suppress("LeakingThis")
+@Deprecated(
+    message = "Enable flags will be removed and moved into optimization-specific flags (i.e optimizationName.enabled)",
+    level = DeprecationLevel.WARNING
+)
 abstract class Optimizations {
     /**
      * If nested jar file optimizations should be applied
      */
+    @Deprecated(
+        message = "Enable flags will be removed and moved into optimization-specific flags (i.e optimizationName.enabled)",
+        level = DeprecationLevel.WARNING
+    )
+    @get:Optional
+    @get:Input
     abstract val jarInJar: Property<Boolean>
 
     /**
      * If png file optimizations should be applied
      */
+    @Deprecated(
+        message = "Enable flags will be removed and moved into optimization-specific flags (i.e optimizationName.enabled)",
+        level = DeprecationLevel.WARNING
+    )
+    @get:Optional
+    @get:Input
     abstract val png: Property<Boolean>
 
     /**
      * If json file optimizations should be applied
      */
+    @Deprecated(
+        message = "Enable flags will be removed and moved into optimization-specific flags (i.e optimizationName.enabled)",
+        level = DeprecationLevel.WARNING
+    )
+    @get:Optional
+    @get:Input
     abstract val json: Property<Boolean>
 
     /**
@@ -26,14 +49,11 @@ abstract class Optimizations {
      *
      * [https://openjdk.java.net/jeps/358](https://openjdk.java.net/jeps/358)
      */
+    @Deprecated(
+        message = "Enable flags will be removed and moved into optimization-specific flags (i.e optimizationName.enabled)",
+        level = DeprecationLevel.WARNING
+    )
+    @get:Optional
+    @get:Input
     abstract val stripLVT: Property<Boolean>
-
-    init {
-        jarInJar.convention(true)
-        png.convention(true)
-        json.convention(true)
-
-        // Lossy
-        stripLVT.convention(false)
-    }
 }

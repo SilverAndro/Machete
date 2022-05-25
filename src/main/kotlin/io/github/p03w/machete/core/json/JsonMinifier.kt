@@ -6,14 +6,14 @@ import io.github.p03w.machete.util.matches
 // https://www.ecma-international.org/wp-content/uploads/ECMA-404_2nd_edition_december_2017.pdf
 // Some lenience added for code simplicity and UX
 class JsonMinifier(private val original: String) {
-    private val input = ConsumableString(original)
+    private val input = JsonParserStringWrapper(original)
     private val root: JsonValue?
 
     init {
         root = parse(input)
     }
 
-    private fun parse(input: ConsumableString): JsonValue {
+    private fun parse(input: JsonParserStringWrapper): JsonValue {
         input.takeAllOf(wsRegex)
         return when (input.current()) {
             '{' -> parseObject(input)
@@ -22,7 +22,7 @@ class JsonMinifier(private val original: String) {
         }
     }
 
-    private fun parseAny(input: ConsumableString): JsonValue {
+    private fun parseAny(input: JsonParserStringWrapper): JsonValue {
         input.takeAllOf(wsRegex)
         return when (val start = input.current()) {
             '{' -> parseObject(input)
@@ -37,12 +37,12 @@ class JsonMinifier(private val original: String) {
         }
     }
 
-    private fun parseNumber(input: ConsumableString): JsonNumberValue {
+    private fun parseNumber(input: JsonParserStringWrapper): JsonNumberValue {
         input.takeAllOf(wsRegex)
         return JsonNumberValue(input.takeAllOf(numberRegex))
     }
 
-    private fun parseFixed(input: ConsumableString): JsonFixedValue {
+    private fun parseFixed(input: JsonParserStringWrapper): JsonFixedValue {
         input.takeAllOf(wsRegex)
         return when (val taken = input.take()) {
             't' -> {
@@ -61,7 +61,7 @@ class JsonMinifier(private val original: String) {
         }
     }
 
-    private fun parseObject(input: ConsumableString): JsonObjectValue {
+    private fun parseObject(input: JsonParserStringWrapper): JsonObjectValue {
         input.takeAllOf(wsRegex)
         val obj = JsonObjectValue()
 
@@ -88,7 +88,7 @@ class JsonMinifier(private val original: String) {
         return obj
     }
 
-    private fun parseArray(input: ConsumableString): JsonArrayValue {
+    private fun parseArray(input: JsonParserStringWrapper): JsonArrayValue {
         input.takeAllOf(wsRegex)
 
         val array = JsonArrayValue()
@@ -112,7 +112,7 @@ class JsonMinifier(private val original: String) {
         return array
     }
 
-    private fun parseString(input: ConsumableString): JsonStringValue {
+    private fun parseString(input: JsonParserStringWrapper): JsonStringValue {
         input.takeAllOf(wsRegex)
         return JsonStringValue(buildString {
             append(input.take('"'))

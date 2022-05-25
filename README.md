@@ -46,12 +46,17 @@ machete {
     keepOriginal = true
     
     // Disable the JIJ, PNG, and JSON optimizations
-    optimizations.jarInJar = false
-    optimizations.png = false
-    optimizations.json = false
+    jij.enabled = false
+    png.enabled = false
+    json.enabled = false
     
     // Enable local variable table stripping
-    optimizations.stripLVT = true
+    stripLVT.enabled = true
+    
+    // Make the PNG optimization (even though disabled here, shush)
+    // Use less optimization and no alpha optimizations
+    png.alpha = false
+    png.optimizationLevel = 2
 }
 ```
 

@@ -1,9 +1,11 @@
 package io.github.p03w.machete.core
 
+import io.github.p03w.machete.config.optimizations.PngConfig
 import io.github.p03w.machete.util.invokeProcess
 import io.github.p03w.machete.util.resolveAndMake
 import io.github.p03w.machete.util.resolveAndMakeSibling
-import org.gradle.api.logging.Logger
+import io.github.p03w.machete.util.tryCatchAll
+import org.slf4j.LoggerFactory
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.StandardCopyOption
@@ -17,6 +19,8 @@ object OxipngManager {
     private val platform: Platform
     private lateinit var oxipng: String
 
+    private val logger = LoggerFactory.getLogger("Machete")
+
     init {
         // Get the OS name
         val osName = System.getProperty("os.name")
@@ -28,7 +32,7 @@ object OxipngManager {
         }
     }
 
-    fun unpackOxipng(name: String, logger: Logger) {
+    fun unpackOxipng(name: String) {
         // Get the file specific to this platform
         val oxipng = when (platform) {
             Platform.WINDOWS -> this::class.java.getResourceAsStream("/oxipng/oxipng-windows.exe")
@@ -46,26 +50,17 @@ object OxipngManager {
             tempDir.resolveAndMake("oxipng")
         }
 
-        logger.info("[$name] Detected platform is $platform")
+        logger.info("Detected platform is $platform for project $name")
         // Copy out oxipng, overwriting any previous copies
         Files.copy(oxipng, file.toPath(), StandardCopyOption.REPLACE_EXISTING)
+        // Try to make the file executable
         file.setExecutable(true)
         if (platform != Platform.WINDOWS) {
             // Linux D:
-            try {
-                invokeProcess(
-                    "chmod",
-                    "+x",
-                    file.absolutePath
-                )
-            } catch (err: Throwable) {
-                err.printStackTrace()
-                try {
-                    Files.setPosixFilePermissions(file.toPath(), PosixFilePermissions.fromString("rwxr-x---"))
-                } catch (err: Throwable) {
-                    err.printStackTrace()
-                }
-            }
+            tryCatchAll(
+                { invokeProcess("chmod", "+x", file.absolutePath) },
+                { Files.setPosixFilePermissions(file.toPath(), PosixFilePermissions.fromString("rwxr-x---")) }
+            ) { it.printStackTrace() }
         }
         if (file.canExecute().not()) {
             System.err.println("Could not set executable for oxipng!\nPlease comment on https://github.com/P03W/Machete/issues/1")
@@ -82,22 +77,31 @@ object OxipngManager {
                 StandardCopyOption.REPLACE_EXISTING
             )
         } else {
-            println("Failed to unpack oxipng license, oxipng is licensed under the MIT license, Copyright (c) 2016 Joshua Holmer")
+            logger.warn("Failed to unpack oxipng license, oxipng is licensed under the MIT license, Copyright (c) 2016 Joshua Holmer")
         }
         this.oxipng = file.absolutePath
     }
 
-    fun optimize(file: File) {
+    fun optimize(file: File, config: PngConfig) {
         if (this::oxipng.isInitialized) {
-            // Run oxipng with every optimization available
-            invokeProcess(
+            val args = mutableListOf(
                 oxipng,
                 file.absolutePath,
-                "-o", "4",            // Max takes *forever* and barely does anything
-                "--strip", "all",     // Strip all metadata
-                "-a",                 // Alpha optimizations,
+                "-o", config.optimizationLevel.get().toString(),
                 "--out", file.absolutePath
             )
+
+            if (config.strip.get() != PngConfig.Strip.NONE) {
+                args.add("--strip")
+                args.add(config.strip.get().flag)
+            }
+
+            if (config.alpha.get()) {
+                args.add("-a")
+            }
+
+            // Run oxipng with every optimization available
+            invokeProcess(*args.toTypedArray())
         }
     }
 

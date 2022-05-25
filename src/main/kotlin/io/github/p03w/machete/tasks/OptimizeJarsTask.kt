@@ -6,6 +6,7 @@ import io.github.p03w.machete.util.resolveAndMakeSibling
 import org.gradle.api.DefaultTask
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.Nested
 import org.gradle.api.tasks.TaskAction
 import java.io.File
 
@@ -13,7 +14,7 @@ abstract class OptimizeJarsTask : DefaultTask() {
     @get:Input
     abstract val buildDir: Property<String>
 
-    @get:Input
+    @get:Nested
     abstract val extension: Property<MachetePluginExtension>
 
     @TaskAction
@@ -23,7 +24,7 @@ abstract class OptimizeJarsTask : DefaultTask() {
             tempJarDir.deleteRecursively()
             tempJarDir.mkdirs()
 
-            val optimizer = JarOptimizer(tempJarDir, it, extension.get())
+            val optimizer = JarOptimizer(tempJarDir, it, extension.get(), project)
             optimizer.unpack()
             optimizer.optimize()
 
