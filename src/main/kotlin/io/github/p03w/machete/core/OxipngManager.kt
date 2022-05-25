@@ -63,7 +63,9 @@ object OxipngManager {
             ) { it.printStackTrace() }
         }
         if (file.canExecute().not()) {
-            System.err.println("Could not set executable for oxipng!\nPlease comment on https://github.com/P03W/Machete/issues/1")
+            logger.error("Could not set executable bit for oxipng!\n" +
+                    "Seems you've run into an edge case I didn't consider :(\n" +
+                    "I've disabled png optimization due to this error, open an issue?")
             return
         }
 
