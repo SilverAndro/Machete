@@ -17,6 +17,7 @@ as it will collect output JARs that are known to be usable artifacts and optimiz
 There are also some disabled-by-default optimizations as they are technically lossy on the behavior of the jar.
 
 - Local Variable Table stripping, disabled because this table is used for the "helpful NPEs" feature in java 14+
+- Source file stripping, disabled because this is used to give the file a class was compiled from in error messages
 
 More optimizations are planned as well, feel free to open an issue!
 
@@ -51,8 +52,9 @@ machete {
     png.enabled = false
     json.enabled = false
     
-    // Enable local variable table stripping
+    // Enable all lossy optimizations
     stripLVT.enabled = true
+    sourceFileStriping.enabled = true
     
     // Make the PNG optimization (even though disabled here, shush)
     // Use less optimization and no alpha optimizations

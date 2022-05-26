@@ -5,6 +5,7 @@ import io.github.p03w.machete.config.optimizations.JsonConfig
 import io.github.p03w.machete.config.optimizations.PngConfig
 import io.github.p03w.machete.config.optimizations.XmlConfig
 import io.github.p03w.machete.config.optimizations.lossy.LVTStripConfig
+import io.github.p03w.machete.config.optimizations.lossy.SourceFileStripConfig
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.SetProperty
 import org.gradle.api.tasks.Input
@@ -44,6 +45,9 @@ abstract class MachetePluginExtension {
 
     @get:Nested
     abstract val lvtStriping: LVTStripConfig
+
+    @get:Nested
+    abstract val sourceFileStriping: SourceFileStripConfig
 
     /**
      * What optimizations are enabled/disabled

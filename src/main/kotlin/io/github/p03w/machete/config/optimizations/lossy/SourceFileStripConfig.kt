@@ -4,7 +4,7 @@ import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Input
 
 @Suppress("LeakingThis")
-abstract class LVTStripConfig {
+abstract class SourceFileStripConfig {
     @get:Input
     abstract val enabled: Property<Boolean>
 

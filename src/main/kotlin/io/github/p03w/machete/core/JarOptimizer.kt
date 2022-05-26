@@ -13,6 +13,7 @@ import org.objectweb.asm.ClassWriter
 import org.objectweb.asm.tree.ClassNode
 import java.io.File
 import java.nio.file.Files
+import java.util.EnumSet
 import java.util.jar.JarEntry
 import java.util.jar.JarFile
 import java.util.jar.JarOutputStream
@@ -111,7 +112,7 @@ class JarOptimizer(
         }
     }
 
-    private fun stripLVT() {
+    private fun stripData(toStrip: EnumSet<StripData>) {
         workDir.allWithExtension("class", toIgnore) { file ->
             val reader = file.inputStream().buffered().use {
                 ClassReader(it)
@@ -119,8 +120,12 @@ class JarOptimizer(
             val node = ClassNode()
             reader.accept(node, 0)
 
-            node.methods.forEach {
-                it.localVariables?.clear()
+            if (toStrip.contains(StripData.SOURCE_FILE)) node.sourceFile = null
+
+            if (toStrip.contains(StripData.LVT)) {
+                node.methods.forEach {
+                    it.localVariables?.clear()
+                }
             }
 
             val writer = ClassWriter(0)
@@ -137,7 +142,12 @@ class JarOptimizer(
         if (config.json.enabled.get()) optimizeJSON()
         if (config.xml.enabled.get()) optimizeXML()
 
-        if (config.lvtStriping.enabled.get()) stripLVT()
+        val toStrip = EnumSet.noneOf(StripData::class.java)
+        if (config.lvtStriping.enabled.get())        toStrip.add(StripData.LVT)
+        if (config.sourceFileStriping.enabled.get()) toStrip.add(StripData.SOURCE_FILE)
+        if (toStrip.isNotEmpty()) {
+            stripData(toStrip)
+        }
     }
 
     fun repackTo(file: File) {
@@ -172,5 +182,10 @@ class JarOptimizer(
                 jar.closeEntry()
             }
         }
+    }
+
+    private enum class StripData {
+        LVT,
+        SOURCE_FILE
     }
 }
