@@ -53,7 +53,7 @@ machete {
     json.enabled = false
     
     // Enable all lossy optimizations
-    stripLVT.enabled = true
+    lvtStriping.enabled = true
     sourceFileStriping.enabled = true
     
     // Make the PNG optimization (even though disabled here, shush)
