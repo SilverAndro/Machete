@@ -2,6 +2,7 @@ package io.github.p03w.machete.core
 
 import io.github.p03w.machete.config.MachetePluginExtension
 import io.github.p03w.machete.core.json.JsonMinifier
+import io.github.p03w.machete.core.xml.XMLMinifier
 import io.github.p03w.machete.util.allWithExtension
 import io.github.p03w.machete.util.resolveAndMake
 import io.github.p03w.machete.util.resolveAndMakeSiblingDir
@@ -92,6 +93,24 @@ class JarOptimizer(
         }
     }
 
+    private fun optimizeXML() {
+        workDir.allWithExtension("xml", toIgnore) { file ->
+            val text = file.bufferedReader().use {
+                it.readText()
+            }
+            file.bufferedWriter().use {
+                try {
+                    val final = XMLMinifier(text)
+                    it.write(final.toString())
+                } catch (err: Throwable) {
+                    log?.warn("Failed to optimize ${file.relativeTo(workDir).path}")
+                    err.printStackTrace()
+                    it.write(text)
+                }
+            }
+        }
+    }
+
     private fun stripLVT() {
         workDir.allWithExtension("class", toIgnore) { file ->
             val reader = file.inputStream().buffered().use {
@@ -116,6 +135,7 @@ class JarOptimizer(
         if (config.jij.enabled.get()) optimizeJarInJar()
         if (config.png.enabled.get()) optimizePNG()
         if (config.json.enabled.get()) optimizeJSON()
+        if (config.xml.enabled.get()) optimizeXML()
 
         if (config.lvtStriping.enabled.get()) stripLVT()
     }

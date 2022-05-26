@@ -3,6 +3,7 @@ package io.github.p03w.machete.config
 import io.github.p03w.machete.config.optimizations.JIJConfig
 import io.github.p03w.machete.config.optimizations.JsonConfig
 import io.github.p03w.machete.config.optimizations.PngConfig
+import io.github.p03w.machete.config.optimizations.XmlConfig
 import io.github.p03w.machete.config.optimizations.lossy.LVTStripConfig
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.SetProperty
@@ -37,6 +38,9 @@ abstract class MachetePluginExtension {
 
     @get:Nested
     abstract val jij: JIJConfig
+
+    @get:Nested
+    abstract val xml: XmlConfig
 
     @get:Nested
     abstract val lvtStriping: LVTStripConfig
