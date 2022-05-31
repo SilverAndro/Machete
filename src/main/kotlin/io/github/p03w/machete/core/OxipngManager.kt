@@ -1,10 +1,7 @@
 package io.github.p03w.machete.core
 
 import io.github.p03w.machete.config.optimizations.PngConfig
-import io.github.p03w.machete.util.invokeProcess
-import io.github.p03w.machete.util.resolveAndMake
-import io.github.p03w.machete.util.resolveAndMakeSibling
-import io.github.p03w.machete.util.tryCatchAll
+import io.github.p03w.machete.util.*
 import org.slf4j.LoggerFactory
 import java.io.File
 import java.nio.file.Files
@@ -16,13 +13,16 @@ import kotlin.io.path.absolute
  * Manages the Oxipng file
  */
 object OxipngManager {
-    lateinit var tempDir: File
+    private lateinit var tempDir: File
     private val platform: Platform
+    private val useNative: Boolean
     private lateinit var oxipng: String
 
     private val logger = LoggerFactory.getLogger("Machete")
 
     init {
+        useNative = doesProcessRun("oxipng")
+
         // Get the OS name
         val osName = System.getProperty("os.name")
         // Try to guess the platform
@@ -34,6 +34,11 @@ object OxipngManager {
     }
 
     fun unpackOxipng(name: String) {
+        if (useNative) {
+            logger.info("Using native oxipng install instead of unpacking")
+            return
+        }
+
         // Get the file specific to this platform
         val oxipngStream = when (platform) {
             Platform.WINDOWS -> this::class.java.getResourceAsStream("/oxipng/oxipng-windows.exe")
@@ -92,10 +97,17 @@ object OxipngManager {
         this.oxipng = file.absolutePath
     }
 
-    fun optimize(file: File, config: PngConfig) {
-        if (this::oxipng.isInitialized) {
+    fun optimize(file: File, config: PngConfig, name: String) {
+        if (this::oxipng.isInitialized || useNative) {
+            if (!useNative && File(oxipng).exists().not()) {
+                if (!config.expectReunpack.get()) {
+                    logger.warn("Oxipng binary was removed? Re-unpacking in attempt to recover")
+                }
+                unpackOxipng(name)
+            }
+
             val args = mutableListOf(
-                oxipng,
+                if (!useNative) oxipng else "oxipng",
                 file.absolutePath,
                 "-o", config.optimizationLevel.get().toString(),
                 "--out", file.absolutePath

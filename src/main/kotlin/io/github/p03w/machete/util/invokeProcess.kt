@@ -11,3 +11,16 @@ fun invokeProcess(vararg args: String) {
     }.start()
     process.waitFor()
 }
+
+/**
+ * A utility method that checks if a process can execute successfully by running it and checking for errors
+ */
+fun doesProcessRun(vararg args: String): Boolean {
+    return try {
+        val process = ProcessBuilder(*args).start()
+        process.waitFor()
+        true
+    } catch (any: Throwable) {
+        false
+    }
+}

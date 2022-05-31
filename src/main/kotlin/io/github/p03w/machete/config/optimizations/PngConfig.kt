@@ -17,13 +17,18 @@ abstract class PngConfig {
     @get:Input
     abstract val alpha: Property<Boolean>
 
+    @get:Input
+    abstract val expectReunpack: Property<Boolean>
+
     init {
         enabled.convention(true)
         optimizationLevel.convention(4)
         strip.convention(Strip.ALL)
         alpha.convention(true)
+        expectReunpack.convention(false)
     }
 
+    @Suppress("unused")
     enum class Strip(val flag: String) {
         NONE(""),
         SAFE("safe"),

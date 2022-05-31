@@ -27,13 +27,13 @@ class JarOptimizer(
     val workDir: File,
     val file: File,
     val config: MachetePluginExtension,
-    val project: Project? = null,
+    val project: Project,
     val isChild: Boolean = false
 ) {
     private val children = mutableMapOf<String, File>()
     private val toIgnore = mutableListOf<String>()
 
-    private val log = project?.logger
+    private val log = project.logger
 
     fun unpack() {
         JarFile(file).use { jarFile ->
@@ -41,7 +41,7 @@ class JarOptimizer(
                 // File is signed! JVM will throw some nasty errors if we change this file at all and try to launch
                 if (u.entries.find { it.key.toString().contains("Digest") } != null) {
                     toIgnore.add(t.split("/").last())
-                    log?.info("[${project!!.name}] Will skip file ${t.split("/").last()} as it is signed")
+                    log.info("[${project.name}] Will skip file ${t.split("/").last()} as it is signed")
                 }
             }
         }
@@ -54,9 +54,9 @@ class JarOptimizer(
     private fun optimizePNG() {
         workDir.allWithExtension("png", toIgnore) {
             try {
-                OxipngManager.optimize(it, config.png)
+                OxipngManager.optimize(it, config.png, project.name)
             } catch (err: Throwable) {
-                log?.warn("Failed to optimize ${file.relativeTo(workDir).path}")
+                log.warn("Failed to optimize ${file.relativeTo(workDir).path}")
                 err.printStackTrace()
             }
         }
@@ -72,7 +72,7 @@ class JarOptimizer(
                     val final = JsonMinifier(text)
                     it.write(final.toString())
                 } catch (err: Throwable) {
-                    log?.warn("Failed to optimize ${file.relativeTo(workDir).path}")
+                    log.warn("Failed to optimize ${file.relativeTo(workDir).path}")
                     err.printStackTrace()
                     it.write(text)
                 }
@@ -104,7 +104,7 @@ class JarOptimizer(
                     val final = XMLMinifier(text)
                     it.write(final.toString())
                 } catch (err: Throwable) {
-                    log?.warn("Failed to optimize ${file.relativeTo(workDir).path}")
+                    log.warn("Failed to optimize ${file.relativeTo(workDir).path}")
                     err.printStackTrace()
                     it.write(text)
                 }
