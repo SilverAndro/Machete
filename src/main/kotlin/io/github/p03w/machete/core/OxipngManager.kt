@@ -99,8 +99,8 @@ object OxipngManager {
     fun optimize(file: File, config: PngConfig, name: String) {
         if (this::oxipng.isInitialized || useNative) {
             if (!useNative && File(oxipng).exists().not()) {
-                if (!config.expectReunpack.get()) {
-                    logger.warn("Oxipng binary was removed? Re-unpacking in attempt to recover")
+                if (config.expectReunpack.get()) {
+                    logger.warn("Oxipng binary was removed? Re-unpacking in attempt to recover (use `png.expectReunpack = true` to suppress)")
                 }
                 unpackOxipng(name)
             }
