@@ -13,15 +13,14 @@ import kotlin.io.path.absolute
  * Manages the Oxipng file
  */
 object OxipngManager {
-    private lateinit var tempDir: File
+    lateinit var tempDir: File
     private val platform: Platform
-    private val useNative: Boolean
+    private val useNative = doesProcessRun("oxipng")
     private lateinit var oxipng: String
 
     private val logger = LoggerFactory.getLogger("Machete")
 
     init {
-        useNative = doesProcessRun("oxipng")
 
         // Get the OS name
         val osName = System.getProperty("os.name")
