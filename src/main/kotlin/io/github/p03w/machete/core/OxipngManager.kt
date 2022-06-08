@@ -21,7 +21,6 @@ object OxipngManager {
     private val logger = LoggerFactory.getLogger("Machete")
 
     init {
-
         // Get the OS name
         val osName = System.getProperty("os.name")
         // Try to guess the platform
