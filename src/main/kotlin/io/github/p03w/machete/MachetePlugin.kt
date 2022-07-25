@@ -28,6 +28,7 @@ class MachetePlugin : Plugin<Project> {
         project.afterEvaluate {
             if (extension.enabled.get().not()) {
                 project.logger.lifecycle("Machete was disabled on this build through the `enabled` flag!")
+                return@afterEvaluate
             }
 
             val tasksToCheck = knownGoodTasks.toMutableSet()

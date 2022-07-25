@@ -9,7 +9,7 @@ plugins {
 }
 
 group = "io.github.p03w"
-version = "1.1.3"
+version = "1.1.4"
 description = "A gradle plugin to optimize built jars through individual file optimizations and increased compression"
 
 //region Dependencies
