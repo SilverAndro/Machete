@@ -26,6 +26,10 @@ class MachetePlugin : Plugin<Project> {
         OxipngManager.unpackOxipng(project.name)
 
         project.afterEvaluate {
+            if (extension.enabled.get().not()) {
+                project.logger.lifecycle("Machete was disabled on this build through the `enabled` flag!")
+            }
+
             val tasksToCheck = knownGoodTasks.toMutableSet()
 
             extension.upgrade()

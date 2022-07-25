@@ -26,6 +26,12 @@ abstract class MachetePluginExtension {
     abstract val ignoredTasks: SetProperty<String>
 
     /**
+     * If the plugin should do anything at all, mainly for debugging or other purposes
+     */
+    @get:Input
+    abstract val enabled: Property<Boolean>
+
+    /**
      * If the original files should be kept by writing optimized ones with "-optimized" at the end of the file name
      */
     @get:Input
@@ -52,11 +58,13 @@ abstract class MachetePluginExtension {
     /**
      * What optimizations are enabled/disabled
      */
+    @Suppress("DEPRECATION")
     @Deprecated("Please use optimization specific flags")
     @get:Nested
     abstract val optimizations: Optimizations
 
     // Upgrade old config, TODO remove me for 2.0.0
+    @Suppress("DEPRECATION")
     fun upgrade() {
         if (optimizations.json.isPresent) json.enabled.convention(optimizations.json.get())
         if (optimizations.png.isPresent) png.enabled.convention(optimizations.png.get())
@@ -65,6 +73,7 @@ abstract class MachetePluginExtension {
     }
 
     init {
+        enabled.convention(true)
         keepOriginal.convention(false)
     }
 }
