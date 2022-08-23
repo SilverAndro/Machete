@@ -1,5 +1,6 @@
 package io.github.p03w.machete.patches
 
+import io.github.p03w.machete.config.MachetePluginExtension
 import org.gradle.api.Project
 
 /**
@@ -7,11 +8,12 @@ import org.gradle.api.Project
  * certain gradle build optimizations
  */
 object LoomTaskOrderPatch: Patch {
-    override fun shouldApply(project: Project): Boolean {
-        return project.plugins.hasPlugin("fabric-loom")
+    override fun shouldApply(project: Project, config: MachetePluginExtension): Boolean {
+        return project.plugins.hasPlugin("fabric-loom") ||
+                project.plugins.hasPlugin("org.quiltmc.loom")
     }
 
-    override fun patch(project: Project) {
+    override fun patch(project: Project, config: MachetePluginExtension) {
         val remap = project.tasks.findByName("remapJar")
         val optimizeJar = project.tasks.findByName("optimizeOutputsOfJar")
         if (remap == null) {

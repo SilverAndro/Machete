@@ -66,6 +66,16 @@ fun File.resolveAndMake(relativeFile: String): File {
 /**
  * Walks the entire sub file tree bottom-up, and runs [action] on any file with the specified extension
  */
-inline fun File.allWithExtension(ext: String, ignoreList: List<String>, action: (File) -> Unit) {
-    walkBottomUp().toList().filter { it.extension == ext && !ignoreList.contains(it.name) }.forEach(action)
+inline fun File.allWithExtension(
+    ext: String,
+    extra: List<String> = listOf(),
+    ignoreList: List<String>,
+    action: (File) -> Unit
+) {
+    walkBottomUp()
+        .toList()
+        .filter {
+            (it.extension == ext || extra.any {extra -> it.name.contains(extra)}) && !ignoreList.contains(it.name)
+        }
+        .forEach(action)
 }

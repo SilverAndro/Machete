@@ -52,7 +52,7 @@ class JarOptimizer(
     }
 
     private fun optimizePNG() {
-        workDir.allWithExtension("png", toIgnore) {
+        workDir.allWithExtension("png", config.png.extraFileExtensions.get(), toIgnore) {
             try {
                 OxipngManager.optimize(it, config.png, project.name)
             } catch (err: Throwable) {
@@ -63,7 +63,7 @@ class JarOptimizer(
     }
 
     private fun optimizeJSON() {
-        workDir.allWithExtension("json", toIgnore) { file ->
+        workDir.allWithExtension("json", config.json.extraFileExtensions.get(), toIgnore) { file ->
             val text = file.bufferedReader().use {
                 it.readText()
             }
@@ -81,7 +81,7 @@ class JarOptimizer(
     }
 
     private fun optimizeJarInJar() {
-        workDir.allWithExtension("jar", toIgnore) { file ->
+        workDir.allWithExtension("jar", config.jij.extraFileExtensions.get(), toIgnore) { file ->
             val unpack =
                 JarOptimizer(workDir.resolveAndMakeSiblingDir(file.nameWithoutExtension), file, config, project, true)
             unpack.unpack()
@@ -95,7 +95,7 @@ class JarOptimizer(
     }
 
     private fun optimizeXML() {
-        workDir.allWithExtension("xml", toIgnore) { file ->
+        workDir.allWithExtension("xml", config.xml.extraFileExtensions.get(), toIgnore) { file ->
             val text = file.bufferedReader().use {
                 it.readText()
             }
@@ -113,7 +113,7 @@ class JarOptimizer(
     }
 
     private fun stripData(toStrip: EnumSet<StripData>) {
-        workDir.allWithExtension("class", toIgnore) { file ->
+        workDir.allWithExtension("class", ignoreList = toIgnore) { file ->
             val reader = file.inputStream().buffered().use {
                 ClassReader(it)
             }

@@ -80,9 +80,9 @@ class MachetePlugin : Plugin<Project> {
             // Try and apply any compatibility patches
             patches.forEach {
                 project.logger.info("Checking if patch ${it::class.simpleName} should apply")
-                if (it.shouldApply(project)) {
+                if (it.shouldApply(project, extension)) {
                     project.logger.info("Applying project patch ${it::class.simpleName}")
-                    it.patch(project)
+                    it.patch(project, extension)
                 }
             }
         }
