@@ -6,7 +6,7 @@ through both individual file optimizations and overall compression increases ins
 Simply applying the plugin should be enough to apply any optimizations in a standard environment,
 as it will collect output JARs that are known to be usable artifacts and optimize them after the `build` task.
 
-**Please note that this plugin works best on hgh-resource density projects**. Code-heavy ones will have minimal success and may even inflate overall.
+**Please note that this plugin works best on high-resource density projects**. Code-heavy ones will have minimal success and may even inflate overall.
 
 ### Optimizations
 
