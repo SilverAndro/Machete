@@ -1,19 +1,14 @@
 package io.github.p03w.machete.core
 
 import io.github.p03w.machete.config.MachetePluginExtension
-import io.github.p03w.machete.core.json.JsonMinifier
-import io.github.p03w.machete.core.xml.XMLMinifier
+import io.github.p03w.machete.core.passes.*
 import io.github.p03w.machete.util.allWithExtension
 import io.github.p03w.machete.util.resolveAndMake
 import io.github.p03w.machete.util.resolveAndMakeSiblingDir
 import io.github.p03w.machete.util.unzip
 import org.gradle.api.Project
-import org.objectweb.asm.ClassReader
-import org.objectweb.asm.ClassWriter
-import org.objectweb.asm.tree.ClassNode
 import java.io.File
 import java.nio.file.Files
-import java.util.EnumSet
 import java.util.jar.JarEntry
 import java.util.jar.JarFile
 import java.util.jar.JarOutputStream
@@ -35,6 +30,13 @@ class JarOptimizer(
 
     private val log = project.logger
 
+    private val passes = buildList {
+        if (config.png.enabled.get()) add(PngPass)
+        if (config.json.enabled.get()) add(JsonPass)
+        if (config.xml.enabled.get()) add(XmlPass)
+        add(ClassFilePass)
+    }
+
     fun unpack() {
         JarFile(file).use { jarFile ->
             jarFile.manifest?.entries?.forEach { (t, u) ->
@@ -48,35 +50,6 @@ class JarOptimizer(
 
         ZipInputStream(file.inputStream().buffered()).use {
             it.unzip(workDir)
-        }
-    }
-
-    private fun optimizePNG() {
-        workDir.allWithExtension("png", config.png.extraFileExtensions.get(), toIgnore) {
-            try {
-                OxipngManager.optimize(it, config.png, project.name)
-            } catch (err: Throwable) {
-                log.warn("Failed to optimize ${file.relativeTo(workDir).path}")
-                err.printStackTrace()
-            }
-        }
-    }
-
-    private fun optimizeJSON() {
-        workDir.allWithExtension("json", config.json.extraFileExtensions.get(), toIgnore) { file ->
-            val text = file.bufferedReader().use {
-                it.readText()
-            }
-            file.bufferedWriter().use {
-                try {
-                    val final = JsonMinifier(text)
-                    it.write(final.toString())
-                } catch (err: Throwable) {
-                    log.warn("Failed to optimize ${file.relativeTo(workDir).path}")
-                    err.printStackTrace()
-                    it.write(text)
-                }
-            }
         }
     }
 
@@ -94,60 +67,16 @@ class JarOptimizer(
         }
     }
 
-    private fun optimizeXML() {
-        workDir.allWithExtension("xml", config.xml.extraFileExtensions.get(), toIgnore) { file ->
-            val text = file.bufferedReader().use {
-                it.readText()
-            }
-            file.bufferedWriter().use {
-                try {
-                    val final = XMLMinifier(text)
-                    it.write(final.toString())
-                } catch (err: Throwable) {
-                    log.warn("Failed to optimize ${file.relativeTo(workDir).path}")
-                    err.printStackTrace()
-                    it.write(text)
-                }
-            }
-        }
-    }
-
-    private fun stripData(toStrip: EnumSet<StripData>) {
-        workDir.allWithExtension("class", ignoreList = toIgnore) { file ->
-            val reader = file.inputStream().buffered().use {
-                ClassReader(it)
-            }
-            val node = ClassNode()
-            reader.accept(node, 0)
-
-            if (toStrip.contains(StripData.SOURCE_FILE)) node.sourceFile = null
-
-            if (toStrip.contains(StripData.LVT)) {
-                node.methods.forEach {
-                    it.localVariables?.clear()
-                }
-            }
-
-            val writer = ClassWriter(0)
-            node.accept(writer)
-            file.outputStream().use { stream ->
-                stream.write(writer.toByteArray())
-            }
-        }
-    }
-
     fun optimize() {
-        if (config.jij.enabled.get()) optimizeJarInJar()
-        if (config.png.enabled.get()) optimizePNG()
-        if (config.json.enabled.get()) optimizeJSON()
-        if (config.xml.enabled.get()) optimizeXML()
-
-        val toStrip = EnumSet.noneOf(StripData::class.java)
-        if (config.lvtStriping.enabled.get())        toStrip.add(StripData.LVT)
-        if (config.sourceFileStriping.enabled.get()) toStrip.add(StripData.SOURCE_FILE)
-        if (toStrip.isNotEmpty()) {
-            stripData(toStrip)
+        passes.forEach {
+            workDir.walkBottomUp().filter { !toIgnore.contains(it.name) }.forEach { file ->
+                if (it.shouldRunOnFile(file, config, log)) {
+                    it.processFile(file, config, log, workDir, project)
+                }
+            }
         }
+
+        if (config.jij.enabled.get()) optimizeJarInJar()
     }
 
     fun repackTo(file: File) {
@@ -182,10 +111,5 @@ class JarOptimizer(
                 jar.closeEntry()
             }
         }
-    }
-
-    private enum class StripData {
-        LVT,
-        SOURCE_FILE
     }
 }
