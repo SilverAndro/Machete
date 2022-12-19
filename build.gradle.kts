@@ -10,7 +10,7 @@ plugins {
 
 group = "io.github.p03w"
 version = "1.2.0"
-description = "A gradle plugin to optimize built jars through individual file optimizations and increased compression"
+description = "A gradle plugin to optimize built jars through individual file optimizations and increased compression, works best on resource heavy jars"
 
 //region Dependencies
 repositories {
@@ -64,8 +64,8 @@ gradlePlugin {
 }
 
 pluginBundle {
-    website = "https://github.com/P03W/Machete/"
-    vcsUrl = "https://github.com/P03W/Machete/"
+    website = "https://github.com/SilverAndro/Machete"
+    vcsUrl = "https://github.com/SilverAndro/Machete"
     description = project.description
     tags = listOf("jar", "build", "jvm", "compress")
 }
