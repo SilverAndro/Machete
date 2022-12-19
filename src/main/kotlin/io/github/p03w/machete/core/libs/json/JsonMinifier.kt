@@ -1,4 +1,4 @@
-package io.github.p03w.machete.core.json
+package io.github.p03w.machete.core.libs.json
 
 import io.github.p03w.machete.util.matches
 

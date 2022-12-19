@@ -1,4 +1,4 @@
-package io.github.p03w.machete.core.json
+package io.github.p03w.machete.core.libs.json
 
 sealed class JsonValue {
     abstract fun getOutput(): String

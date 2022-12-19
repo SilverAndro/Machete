@@ -1,7 +1,7 @@
 package io.github.p03w.machete.core.passes
 
 import io.github.p03w.machete.config.MachetePluginExtension
-import io.github.p03w.machete.core.xml.XMLMinifier
+import io.github.p03w.machete.core.libs.xml.XMLMinifier
 import org.gradle.api.Project
 import org.slf4j.Logger
 import java.io.File

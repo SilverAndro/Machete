@@ -1,4 +1,4 @@
-package io.github.p03w.machete.core.xml
+package io.github.p03w.machete.core.libs.xml
 
 class XMLMinifier(private val original: String) {
     override fun toString(): String {
