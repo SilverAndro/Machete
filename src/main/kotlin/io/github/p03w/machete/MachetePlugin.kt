@@ -57,6 +57,7 @@ class MachetePlugin : Plugin<Project> {
                         optimizeTask.description =
                             "An auto-generated task to optimize the output artifacts of $taskName"
 
+                        // Try and set the inputs and outputs
                         optimizeTask.inputs.files(toOptimize)
                         if (extension.keepOriginal.get().not()) {
                             optimizeTask.outputs.files(toOptimize)
@@ -69,8 +70,8 @@ class MachetePlugin : Plugin<Project> {
                         // Give everything its own sibling dir to prevent overlapping on parallel tasks
                         optimizeTask.buildDir.set(buildDir.resolveAndMakeDir(taskName).absolutePath)
                         optimizeTask.extension.set(extension)
-
                     }
+
                     // Hook after to prevent some issues occasionally with ordering
                     optimizeTask.dependsOn(found)
                     found.finalizedBy(optimizeTask)

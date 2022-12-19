@@ -48,23 +48,26 @@ class JsonArrayValue : JsonValue() {
 
 class JsonObjectValue : JsonValue() {
     // Can have duplicates, and there isn't really a reasonable de-duplication strategy that won't upset someone
-    private val map = mutableListOf<Pair<JsonStringValue, JsonValue>>()
+    private val map = LinkedHashMap<JsonStringValue, JsonValue>()
 
     fun put(key: JsonStringValue, value: JsonValue) {
-        map.add(key to value)
+        map[key] = value
     }
 
     override fun getOutput(): String {
         return buildString {
             append("{")
 
-            map.forEachIndexed { index, pair ->
-                append(pair.first.getOutput())
+            var count = 0
+            val last = map.size - 1
+            map.forEach { (key, value) ->
+                append(key.getOutput())
                 append(":")
-                append(pair.second.getOutput())
+                append(value.getOutput())
 
-                if (index != map.lastIndex) {
+                if (count != last) {
                     append(",")
+                    count++
                 }
             }
 
