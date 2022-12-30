@@ -22,7 +22,7 @@ class MachetePlugin : Plugin<Project> {
         buildDir.deleteRecursively()
         buildDir.mkdirs()
 
-        OxipngManager.tempDir = buildDir
+        OxipngManager.tempDir = project.rootProject.buildDir
         OxipngManager.unpackOxipng(project.name)
 
         project.afterEvaluate {
@@ -32,8 +32,6 @@ class MachetePlugin : Plugin<Project> {
             }
 
             val tasksToCheck = knownGoodTasks.toMutableSet()
-
-            extension.upgrade()
 
             extension.additionalTasks.orNull?.let {
                 tasksToCheck.addAll(it)
@@ -66,15 +64,21 @@ class MachetePlugin : Plugin<Project> {
                                 file.resolveSibling(file.nameWithoutExtension + "-optimized.jar")
                             })
                         }
+                        // We can cache if we arent replacing anything
+                        // Gradle does handle this for us, but doesnt hurt to be explicit
+                        optimizeTask.outputs.cacheIf { extension.keepOriginal.get() }
 
                         // Give everything its own sibling dir to prevent overlapping on parallel tasks
                         optimizeTask.buildDir.set(buildDir.resolveAndMakeDir(taskName).absolutePath)
                         optimizeTask.extension.set(extension)
                     }
 
-                    // Hook after to prevent some issues occasionally with ordering
+                    // Hook after build
+                    val after = extension.finalizeAfter.get()
+                    if (after.isNotBlank()) {
+                        project.tasks.getByName(after).finalizedBy(optimizeTask)
+                    }
                     optimizeTask.dependsOn(found)
-                    found.finalizedBy(optimizeTask)
                 }
             }
 

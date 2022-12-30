@@ -49,6 +49,9 @@ machete {
     // Keep the original copies in the build directory
     keepOriginal = true
     
+    // Disable task hooking (if you want to manage it manually or seperately)
+    finalizeAfter = ""
+    
     // Disable the JIJ, PNG, and JSON optimizations
     jij.enabled = false
     png.enabled = false
@@ -77,3 +80,12 @@ gradle have good docs challenge (impossible)).
 
 - [shadow](https://github.com/johnrengelman/shadow)
 - [fabric-loom](https://github.com/FabricMC/fabric-loom/) and most derivatives
+
+---
+
+### Notes on 2.0.0 for end users
+- Optimization tasks now hook after `assemble` rather than the task that they're optimizing the output of, this is the most likely to break things but I believe it should be fine for most usecases
+- Hooking on `assemble` can be changed or disabled if you want better control
+- If using `keepOriginal`, the output will now be cached
+  - Gradle managed this previously, but this makes the caching explicit
+- Oxipng is de-duplicated now

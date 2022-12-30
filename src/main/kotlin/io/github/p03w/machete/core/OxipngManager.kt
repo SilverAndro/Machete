@@ -120,7 +120,7 @@ object OxipngManager {
                 args.add("-a")
             }
 
-            // Run oxipng with every optimization available
+            // Run oxipng with every optimization enabled
             invokeProcess(*args.toTypedArray())
         }
     }

@@ -26,7 +26,7 @@ abstract class MachetePluginExtension {
     abstract val ignoredTasks: SetProperty<String>
 
     /**
-     * If the plugin should do anything at all, mainly for debugging or other purposes
+     * If the plugin should do anything at all, mainly for debugging or other purposes such as not running on local builds
      */
     @get:Input
     abstract val enabled: Property<Boolean>
@@ -36,6 +36,12 @@ abstract class MachetePluginExtension {
      */
     @get:Input
     abstract val keepOriginal: Property<Boolean>
+
+    /**
+     * What task to attach to for finalization, empty string to disable, defaults to `assemble`
+     */
+    @get:Input
+    abstract val finalizeAfter: Property<String>
 
     @get:Nested
     abstract val json: JsonConfig
@@ -55,25 +61,9 @@ abstract class MachetePluginExtension {
     @get:Nested
     abstract val sourceFileStriping: SourceFileStripConfig
 
-    /**
-     * What optimizations are enabled/disabled
-     */
-    @Suppress("DEPRECATION")
-    @Deprecated("Please use optimization specific flags")
-    @get:Nested
-    abstract val optimizations: Optimizations
-
-    // Upgrade old config, TODO remove me for 2.0.0
-    @Suppress("DEPRECATION")
-    fun upgrade() {
-        if (optimizations.json.isPresent) json.enabled.convention(optimizations.json.get())
-        if (optimizations.png.isPresent) png.enabled.convention(optimizations.png.get())
-        if (optimizations.jarInJar.isPresent) jij.enabled.convention(optimizations.jarInJar.get())
-        if (optimizations.stripLVT.isPresent) lvtStriping.enabled.convention(optimizations.stripLVT.get())
-    }
-
     init {
         enabled.convention(true)
         keepOriginal.convention(false)
+        finalizeAfter.convention("assemble")
     }
 }
