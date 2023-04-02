@@ -46,19 +46,21 @@ fun File.resolveAndMakeDir(relativeFile: String): File {
 }
 
 /**
- * Resolves a sibling file, calls .createNewFile, and returns the new file
+ * Resolves a sibling file, creates parent dirs, calls .createNewFile, and returns the new file
  */
 fun File.resolveAndMakeSibling(relativeFile: String): File {
     val res = resolveSibling(relativeFile)
+    res.mkdirs()
     res.createNewFile()
     return res
 }
 
 /**
- * Resolves a file, calls .createNewFile, and returns the new file
+ * Resolves a file, creates parent dirs, calls .createNewFile, and returns the new file
  */
 fun File.resolveAndMake(relativeFile: String): File {
     val res = resolve(relativeFile)
+    res.mkdirs()
     res.createNewFile()
     return res
 }

@@ -12,7 +12,7 @@ import java.io.File
 
 abstract class OptimizeJarsTask : DefaultTask() {
     @get:Input
-    abstract val buildDir: Property<String>
+    abstract val buildDir: Property<File>
 
     @get:Nested
     abstract val extension: Property<MachetePluginExtension>
@@ -20,7 +20,7 @@ abstract class OptimizeJarsTask : DefaultTask() {
     @TaskAction
     fun optimizeJars() {
         inputs.files.forEach {
-            val tempJarDir = File(buildDir.get()).resolve("root-jar")
+            val tempJarDir = buildDir.get().resolve("root-jar")
             tempJarDir.deleteRecursively()
             tempJarDir.mkdirs()
 

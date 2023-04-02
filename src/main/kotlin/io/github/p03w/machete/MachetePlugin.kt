@@ -3,27 +3,18 @@
 package io.github.p03w.machete
 
 import io.github.p03w.machete.config.MachetePluginExtension
-import io.github.p03w.machete.core.OxipngManager
 import io.github.p03w.machete.patches.patches
 import io.github.p03w.machete.tasks.DumpTasksWithOutputJarsTask
 import io.github.p03w.machete.tasks.OptimizeJarsTask
+import io.github.p03w.machete.tasks.UnpackOxipngTask
 import io.github.p03w.machete.util.capital
 import io.github.p03w.machete.util.knownGoodTasks
-import io.github.p03w.machete.util.resolveAndMakeDir
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import java.io.File
 
 class MachetePlugin : Plugin<Project> {
     override fun apply(project: Project) {
         val extension = project.extensions.create("machete", MachetePluginExtension::class.java)
-
-        val buildDir = File(project.buildDir.absolutePath).resolve("machete-build")
-        buildDir.deleteRecursively()
-        buildDir.mkdirs()
-
-        OxipngManager.tempDir = project.rootProject.buildDir
-        OxipngManager.unpackOxipng(project.name)
 
         project.afterEvaluate {
             if (extension.enabled.get().not()) {
@@ -31,8 +22,9 @@ class MachetePlugin : Plugin<Project> {
                 return@afterEvaluate
             }
 
-            val tasksToCheck = knownGoodTasks.toMutableSet()
+            val unpackOxipngTask = project.tasks.create("unpackOxipng", UnpackOxipngTask::class.java)
 
+            val tasksToCheck = knownGoodTasks.toMutableSet()
             extension.additionalTasks.orNull?.let {
                 tasksToCheck.addAll(it)
             }
@@ -64,13 +56,17 @@ class MachetePlugin : Plugin<Project> {
                                 file.resolveSibling(file.nameWithoutExtension + "-optimized.jar")
                             })
                         }
+
                         // We can cache if we arent replacing anything
-                        // Gradle does handle this for us, but doesnt hurt to be explicit
+                        // Gradle does handle this for us, but doesn't hurt to be explicit
                         optimizeTask.outputs.cacheIf { extension.keepOriginal.get() }
 
                         // Give everything its own sibling dir to prevent overlapping on parallel tasks
-                        optimizeTask.buildDir.set(buildDir.resolveAndMakeDir(taskName).absolutePath)
+                        optimizeTask.buildDir.set(project.buildDir.resolve("machete-build").resolve(taskName))
                         optimizeTask.extension.set(extension)
+
+                        // Make sure oxipng is set up before we do anything
+                        optimizeTask.dependsOn(unpackOxipngTask)
                     }
 
                     // Hook after build
